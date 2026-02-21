@@ -1,17 +1,13 @@
-//
-//  RabbitHoleApp.swift
-//  RabbitHole
-//
-//  Created by khoasdyn on 21/2/26.
-//
-
 import SwiftUI
+import SwiftData
 
 @main
 struct RabbitHoleApp: App {
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .modelContainer(for: [Topic.self, ContentItem.self, UserProgress.self])
         }
     }
 }
