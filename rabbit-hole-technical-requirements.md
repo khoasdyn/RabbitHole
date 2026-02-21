@@ -79,8 +79,8 @@ All persistent data types use `@Model` classes instead of plain structs. Example
 ```swift
 @Model
 class Topic {
-    var name: String
-    var prompt: String
+    var question: String
+    var subjectArea: String
     var accentColorName: String
     var isActive: Bool
     var createdAt: Date
@@ -168,13 +168,14 @@ RabbitHole/
 │   ├── Level.swift              // enum or struct
 │   └── ContentPayload.swift     // type-specific data
 ├── ViewModels/
-│   ├── TopicInputViewModel.swift
+│   ├── QuestionSelectionViewModel.swift
 │   ├── ContentFeedViewModel.swift
 │   ├── ProgressViewModel.swift
-│   └── TopicManagerViewModel.swift
+│   └── QuestionManagerViewModel.swift
 ├── Views/
 │   ├── Welcome/
 │   │   └── WelcomeView.swift
+│   │   └── QuestionCardView.swift
 │   ├── Feed/
 │   │   ├── ContentFeedView.swift
 │   │   ├── Cards/
@@ -194,8 +195,8 @@ RabbitHole/
 │   ├── Progress/
 │   │   ├── LevelProgressView.swift
 │   │   └── LevelUpView.swift
-│   └── Topics/
-│       └── TopicManagementView.swift
+│   └── Explore/
+│       └── QuestionManagementView.swift
 ├── Components/
 │   ├── LevelBadge.swift
 │   ├── ProgressBar.swift
@@ -214,7 +215,7 @@ RabbitHole/
 
 ### Navigation architecture
 
-Use SwiftUI's `NavigationStack` with a path-based approach for programmatic navigation. The root container is a `TabView` with three tabs (Feed, Progress, Topics) as defined in the PRD.
+Use SwiftUI's `NavigationStack` with a path-based approach for programmatic navigation. The root container is a `TabView` with three tabs (Feed, Progress, Explore) as defined in the PRD.
 
 ```swift
 // Conceptual structure
@@ -225,8 +226,8 @@ TabView {
     NavigationStack { LevelProgressView() }
         .tabItem { Label("Progress", systemImage: "chart.bar") }
 
-    NavigationStack { TopicManagementView() }
-        .tabItem { Label("Topics", systemImage: "safari") }
+    NavigationStack { QuestionManagementView() }
+        .tabItem { Label("Explore", systemImage: "safari") }
 }
 ```
 
@@ -285,8 +286,8 @@ Mock data is defined as static arrays in dedicated Swift files under `MockData/`
 struct MockDataSeeder {
     static func seed(context: ModelContext) {
         let stoicism = Topic(
-            name: "Stoicism",
-            prompt: "Stoicism",
+            question: "Were the Stoics right that most of your problems are imaginary?",
+            subjectArea: "Philosophy",
             accentColorName: "orange",
             isActive: true,
             createdAt: .now
@@ -330,6 +331,18 @@ The feed renders content polymorphically by switching on `ContentType` to select
 ### Mock data should feel real
 
 Even though this is mock data, it should read like real content, not "Lorem ipsum" or "Test Article 1." The prototype will be demonstrated and evaluated on feel, so realistic mock content is important. Use actual facts about Stoicism and Astrophysics. Write actual quiz questions with plausible wrong answers.
+
+### Question quality in mock data
+
+All proposed questions displayed on the welcome screen must follow the content question guidelines defined in the PRD. Specifically:
+
+- Every question must be specific and not broad (no "What is X?" style)
+- Every question must be under 15 words
+- Every question must feel conversational, not academic
+- Every question should provoke curiosity, surprise, or a desire to know the answer
+- Questions should span a variety of subject areas and tonal angles
+
+When writing content items within a topic, the titles and framing of individual pieces should also follow this spirit. An article titled "Marcus Aurelius wrote a journal no one was supposed to read" is better than "The Life of Marcus Aurelius." A quiz question that tells a micro-story is better than one that asks for a definition.
 
 
 ## Performance considerations

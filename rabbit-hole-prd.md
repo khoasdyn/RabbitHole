@@ -2,7 +2,7 @@
 
 **A progressive deep-learning app that turns curiosity into expertise, one layer at a time.**
 
-Pick any topic. Go from knowing nothing to knowing everything, one day at a time, through AI-generated videos, articles, quizzes, and discussions that level up as you do.
+Pick any question. Go from knowing nothing to knowing everything, one day at a time, through AI-generated videos, articles, quizzes, and discussions that level up as you do.
 
 ## Problem statement
 
@@ -26,7 +26,7 @@ This document describes a **UI/UX prototype** of an iOS app. The goal at this st
 
 - Fully designed and interactive UI screens
 - Pre-prepared mock content for demonstration purposes
-- Simulated topic input, content feed, and progression system
+- Simulated question selection, content feed, and progression system
 - All core user flows functional with mock data
 
 **What this prototype does NOT include:**
@@ -45,27 +45,55 @@ For all technical specifications, architecture, and coding standards, refer to t
 
 ## Core concepts
 
-### Topic as the anchor
+### Question as the anchor
 
-Everything in Rabbit Hole revolves around a single topic the user has chosen. The entire app experience, including the content feed, progression tracking, and UI theming, is oriented around this one subject. The user can switch topics at any time, but the app encourages focused, sustained exploration of one topic before moving on.
+Everything in Rabbit Hole revolves around a single question the user has chosen. The entire app experience, including the content feed, progression tracking, and UI theming, is oriented around this one question and the subject area it opens up. The user can switch questions at any time, but the app encourages focused, sustained exploration of one question before moving on.
 
-### Freeform topic input
+The question serves as both the entry point and the narrative thread. Rather than exploring "Stoicism" broadly, the user is investigating "Were the Stoics right that most of your problems are imaginary?" This framing keeps the content focused, opinionated, and engaging at every level. As the user goes deeper, the question's scope naturally expands to encompass the broader subject, but it always stays grounded in the original provocation.
 
-Rather than browsing a curated catalog, users type what they want to learn in their own words. Examples: "Stoicism," "How nuclear reactors work," "Cognitive biases," "The history of jazz." The app interprets this input and builds a content experience around it.
+### Question-driven exploration
 
-For the prototype, this is simulated by mapping keyword inputs to pre-built mock content sets. The UI presents it as a freeform text input with no visible catalog or category restrictions.
+Rather than typing a broad topic or browsing a catalog, users choose from a curated set of proposed questions. The app presents engaging, specific questions that spark curiosity and pull the user into a subject through a compelling angle rather than a dry definition.
+
+This is a deliberate design choice. Broad topics like "Stoicism" or "Design thinking" lead to generic, encyclopedia-style content. A specific, opinionated question like "Were the Stoics right that most of your problems are imaginary?" immediately frames the exploration around a provocative idea, gives the content a narrative direction, and makes the user feel like they're investigating something rather than studying a subject.
+
+For the prototype, the app displays a selection of pre-written questions across various subject areas. The user picks one, and the app builds the content journey around it.
+
+### Content question guidelines
+
+The questions the app proposes are the single most important piece of content in the entire experience. They are the hook. If the questions feel like textbook chapter titles, users will scroll past them. Every proposed question must follow these principles:
+
+**Specific, not broad.** The question should zoom in on a concrete angle, scenario, or claim rather than asking about an entire field. It should feel like the start of an interesting conversation, not a Wikipedia search query.
+
+| Bad (too broad) | Good (specific and engaging) |
+|-----------------|------------------------------|
+| What is Stoicism? | Were the Stoics right that most of your problems are imaginary? |
+| What is design thinking? | How did Airbnb use design thinking to avoid going bankrupt? |
+| Tell me about black holes | What happens to time when you fall into a black hole? |
+| What is climate change? | Is eating local actually better for the planet? |
+| History of jazz | Why did jazz musicians start breaking all the rules in the 1940s? |
+
+**Catching and engaging.** The question should trigger an emotional or intellectual reaction: surprise, disagreement, curiosity, or a "wait, really?" moment. It should feel like a question you'd want to hear the answer to at a dinner party.
+
+**Conversational and concise.** Questions should read like something a curious person would actually ask out loud. Keep them short, ideally under 15 words. No academic phrasing, no jargon, no filler.
+
+**Opinionated or provocative when possible.** Questions that imply a stance, challenge a common belief, or present a counterintuitive angle tend to perform best. "Is travelling really that good?" is more engaging than "What are the benefits of travelling?" because it makes the user want to find out the answer.
+
+**Not definitional.** Avoid "What is X?" or "Define X" style questions. The app is not an encyclopedia. If the user needs a definition, it can be woven into the content naturally. The entry point should always be a question that makes the user think, not one that makes them expect a textbook answer.
+
+**Variety in tone and angle.** Across the set of proposed questions, there should be a healthy mix of "how" questions (process, mechanism), "why" questions (cause, motivation), "is it true that" questions (myth-busting, challenging assumptions), "what happens when" questions (consequences, scenarios), and "who/what changed" questions (pivotal moments, key figures in action).
 
 ### Progressive depth (the leveling system)
 
 Content is organized into progressive levels that represent the user's depth of understanding:
 
-| Level | Label | Description | Example (topic: Stoicism) |
+| Level | Label | Description | Example (question: "Were the Stoics right that most of your problems are imaginary?") |
 |-------|-------|-------------|---------------------------|
-| 1 | **Newcomer** | Absolute basics, definitions, "what is this?" | What is Stoicism? Who were the Stoics? |
-| 2 | **Explorer** | Key concepts, major figures, foundational ideas | The four virtues, Marcus Aurelius, Seneca |
-| 3 | **Student** | Deeper principles, nuance, historical context | Stoic logic, the discipline of assent, Stoicism vs Epicureanism |
-| 4 | **Practitioner** | Application, real-world relevance, critical thinking | Applying Stoic principles to modern life, critiques of Stoicism |
-| 5 | **Expert** | Advanced discourse, edge cases, original thinking | Academic debates, Stoicism's influence on CBT, synthesizing your own Stoic framework |
+| 1 | **Newcomer** | Absolute basics, grounding the question in context | What did the Stoics actually believe? What do they mean by "imaginary" problems? |
+| 2 | **Explorer** | Key concepts and figures behind the question | The dichotomy of control, Marcus Aurelius's journal, Epictetus on perception |
+| 3 | **Student** | Deeper principles, nuance, and counterarguments | Stoic logic of impressions, how this compares to Buddhist detachment, valid critiques |
+| 4 | **Practitioner** | Real-world application and critical thinking | Testing Stoic reframing on modern anxiety, when Stoicism fails, practical exercises |
+| 5 | **Expert** | Advanced discourse, synthesis, and original thinking | Stoicism's influence on CBT, academic debates on emotional suppression, building your own framework |
 
 **Unlocking mechanism (Duolingo-inspired):** Users unlock the next level by either spending 24 hours engaging with content at their current level, or completing challenge sets (a series of quizzes/exercises) to skip ahead early. This creates a natural pacing that prevents surface-level skimming while rewarding active engagement.
 
@@ -77,13 +105,13 @@ A core design principle of Rabbit Hole is that learning should never feel monoto
 
 | Content type | Format | Purpose | Example |
 |-------------|--------|---------|---------|
-| **Short video** | 30-90 second video clip | Quick visual explanation, hook attention | Animated explainer on what Stoicism is |
-| **Article** | 300-800 word text with images | Deeper reading, context and nuance | "The life of Marcus Aurelius and why it matters" |
-| **Image card** | Single image with caption or overlay text | Visual concept, infographic, memorable snapshot | Infographic of the four Stoic virtues |
-| **Quiz** | Multiple choice or short answer, 3-5 questions | Test understanding, reinforce retention | "Which Stoic philosopher said...?" |
-| **Discussion** | AI-driven Socratic Q&A thread | Active thinking, articulating understanding | "Do you think Stoic emotional control is healthy or suppressive?" |
-| **Survey/poll** | Single question with response options | Self-reflection, opinion formation | "Which Stoic virtue do you find hardest to practice?" |
-| **Challenge** | Task or exercise to complete | Application of knowledge, level progression | "Write down 3 situations this week where you could apply the dichotomy of control" |
+| **Short video** | 30-90 second video clip | Quick visual explanation, hook attention | Animated explainer: "What did the Stoics mean by 'it's all in your head'?" |
+| **Article** | 300-800 word text with images | Deeper reading, context and nuance | "Marcus Aurelius wrote a journal no one was supposed to read. Here's what it says about your problems." |
+| **Image card** | Single image with caption or overlay text | Visual concept, infographic, memorable snapshot | Infographic mapping the Stoic dichotomy of control to everyday situations |
+| **Quiz** | Multiple choice or short answer, 3-5 questions | Test understanding, reinforce retention | "Epictetus was a slave. How did that shape his idea that suffering is a choice?" |
+| **Discussion** | AI-driven Socratic Q&A thread | Active thinking, articulating understanding | "Your flight got cancelled and you're stuck overnight. A Stoic would say that's not actually a problem. Do you agree?" |
+| **Survey/poll** | Single question with response options | Self-reflection, opinion formation | "When something goes wrong, is your first instinct to fix it or to stress about it?" |
+| **Challenge** | Task or exercise to complete | Application of knowledge, level progression | "Pick one thing bothering you today. Write down what you can control about it and what you can't." |
 
 For the prototype, all content pieces are pre-written mock data. The feed should visually demonstrate variety by interspersing different content types rather than grouping them.
 
@@ -92,26 +120,30 @@ For the prototype, all content pieces are pre-written mock data. The feed should
 
 ## User flows
 
-### Flow 1: First launch and topic selection
+### Flow 1: First launch and question selection
 
 ```
 App opens
   → Welcome screen with app branding and a single compelling line:
-    "What do you want to master?"
-  → Large, centered text input field with placeholder text:
-    e.g., "Stoicism, quantum physics, how bread is made..."
-  → User types their topic and taps "Dive In"
+    "What are you curious about?"
+  → A curated grid or list of proposed questions, each presented as
+    a tappable card. Questions span different subject areas to offer variety.
+    e.g., "Were the Stoics right that most of your problems are imaginary?"
+         "What happens to time when you fall into a black hole?"
+         "Why did jazz musicians start breaking all the rules in the 1940s?"
+         "Is eating local actually better for the planet?"
+  → User taps a question that catches their interest
   → Brief loading/transition animation
     (visually suggests the app is "building" their learning path)
   → Content feed appears, starting at Level 1: Newcomer
 ```
 
-There is no sign-up, no onboarding tutorial, no category browsing. The user goes from launch to content in under 10 seconds. The first-time experience should feel immediate and exciting.
+There is no sign-up, no onboarding tutorial, no typing required. The user goes from launch to content in two taps. The first-time experience should feel immediate and exciting. The questions themselves should be compelling enough that users feel pulled to tap one.
 
 ### Flow 2: Content feed browsing
 
 ```
-User is on the content feed for their chosen topic
+User is on the content feed for their chosen question
   → Feed displays a vertical scroll of mixed content types
   → Each content card is visually distinct by type:
     - Video cards show a thumbnail with a play button
@@ -141,7 +173,7 @@ Each content type has its own detail view:
 
 **Quiz:** One question at a time, with tappable answer options. Immediate feedback after each answer (correct/incorrect with a brief explanation). Summary score at the end.
 
-**Discussion (Socratic AI dialogue):** A conversational thread UI. The app presents a thought-provoking question related to the current topic and level. The user types a response. The AI responds with a follow-up question or challenges their reasoning. This continues for 3-5 exchanges. For the prototype, the AI responses are pre-scripted mock data following a branching or linear script.
+**Discussion (Socratic AI dialogue):** A conversational thread UI. The app presents a thought-provoking prompt related to the current question and level. The user types a response. The AI responds with a follow-up question or challenges their reasoning. This continues for 3-5 exchanges. For the prototype, the AI responses are pre-scripted mock data following a branching or linear script.
 
 **Survey/poll:** Inline on the feed, tappable options. After selecting, the user sees simulated aggregate results (e.g., "68% of learners agree with you"). This creates a sense of community even in a solo experience.
 
@@ -168,22 +200,22 @@ User has been engaging with Level 1 content
 
 The level-up moment should feel rewarding and significant. It's one of the key dopamine loops that keeps users coming back.
 
-### Flow 5: Switching topics
+### Flow 5: Switching questions
 
 ```
 User is on any screen
-  → Navigation includes a way to access topic management
+  → Navigation includes a way to access question management
     (e.g., a top-left menu or a dedicated tab)
-  → Topic management screen shows:
-    - Current active topic with its level and progress
-    - Previously explored topics (with their saved progress)
-    - "Explore something new" button → returns to the topic input screen
-  → Tapping a previous topic reactivates it and resumes from saved progress
-  → Tapping "Explore something new" opens the freeform topic input
-  → Only one topic is active at a time in the content feed
+  → Question management screen shows:
+    - Current active question with its level and progress
+    - Previously explored questions (with their saved progress)
+    - "Explore something new" button → returns to the question selection screen
+  → Tapping a previous question reactivates it and resumes from saved progress
+  → Tapping "Explore something new" shows the curated question selection
+  → Only one question is active at a time in the content feed
 ```
 
-This flow encourages depth (one topic at a time) while allowing the user to pivot whenever they want without losing progress on previous explorations.
+This flow encourages depth (one question at a time) while allowing the user to pivot whenever they want without losing progress on previous explorations.
 
 
 ## App structure and navigation
@@ -191,11 +223,12 @@ This flow encourages depth (one topic at a time) while allowing the user to pivo
 ### Screen map
 
 ```
-├── Welcome / Topic Input Screen
-│     The entry point. "What do you want to master?"
+├── Welcome / Question Selection Screen
+│     The entry point. "What are you curious about?"
+│     Displays a curated set of engaging, specific questions to choose from.
 │
 ├── Content Feed (main screen)
-│     Vertical scrolling feed of mixed content for the active topic.
+│     Vertical scrolling feed of mixed content for the active question.
 │     Shows current level indicator.
 │     ├── Video Detail View
 │     ├── Article Detail View
@@ -209,9 +242,9 @@ This flow encourages depth (one topic at a time) while allowing the user to pivo
 │     and the option to take a challenge to unlock the next level.
 │     Also previews what's coming in the next level.
 │
-├── Topic Management Screen
-│     Lists active topic and past topics.
-│     Option to start a new topic.
+├── Question Management Screen
+│     Lists active question and past questions.
+│     Option to explore a new question.
 │
 └── Settings Screen (minimal for prototype)
       Placeholder for future preferences, account, notifications.
@@ -223,11 +256,11 @@ The app uses a **tab bar** at the bottom with three primary tabs:
 
 | Tab | Icon concept | Destination |
 |-----|-------------|-------------|
-| **Feed** | Scroll/cards icon | Content feed for active topic |
+| **Feed** | Scroll/cards icon | Content feed for active question |
 | **Progress** | Layers/level icon | Level progress and challenge access |
-| **Topics** | Compass/search icon | Topic management and new topic input |
+| **Explore** | Compass/search icon | Question management and new question selection |
 
-A settings gear icon can be placed in the top-right corner of the Topics or Progress screen.
+A settings gear icon can be placed in the top-right corner of the Explore or Progress screen.
 
 
 ## UI and visual direction
@@ -248,11 +281,11 @@ The visual identity should feel **immersive, modern, and slightly dark**, drawin
 
 ### Color direction
 
-A dark base palette with accent colors that shift by topic or level. For example:
+A dark base palette with accent colors that shift by question or level. For example:
 
 - Base background: deep charcoal or near-black
 - Primary text: off-white
-- Accent color: a signature color per topic (e.g., deep blue for "Astrophysics," warm amber for "Stoicism," green for "Ecology") or per level (getting richer/more saturated as levels increase)
+- Accent color: a signature color per question's subject area (e.g., deep blue for astrophysics questions, warm amber for philosophy questions, green for ecology questions) or per level (getting richer/more saturated as levels increase)
 - Content cards: slightly elevated surfaces with subtle shadows or borders
 
 ### Typography
@@ -264,13 +297,32 @@ Clean, highly readable sans-serif. Two weights are sufficient: a bold weight for
 
 To demonstrate the prototype effectively, the following mock data should be prepared:
 
-### Mock topics (minimum 2 fully built out)
+### Mock questions (minimum 2 fully built out, plus additional selection options)
 
-**Primary demo topic: Stoicism**
-This is the topic used for the main walkthrough and demonstration. It should have complete mock content across all five levels.
+The welcome screen should display at least **8 to 10 proposed questions** across various subject areas to give users a compelling selection. Of these, two are fully built out with content across multiple levels.
 
-**Secondary demo topic: Astrophysics**
-A second topic to demonstrate topic switching and to show that the app works across different subject areas. This can have content for levels 1 through 3 only.
+**Proposed questions for the welcome screen (examples):**
+
+| Question | Subject area |
+|----------|-------------|
+| Were the Stoics right that most of your problems are imaginary? | Philosophy |
+| What happens to time when you fall into a black hole? | Astrophysics |
+| Why did jazz musicians start breaking all the rules in the 1940s? | Music history |
+| Is eating local actually better for the planet? | Environment |
+| How did Airbnb use design thinking to avoid going bankrupt? | Design/Business |
+| Can you actually rewire your brain by changing your habits? | Neuroscience |
+| Why do we dream about falling and what does it mean? | Psychology |
+| Did the ancient Romans have fast food? | History |
+| Is remote work making us lonelier or freer? | Culture/Work |
+| Why do some languages have no word for "blue"? | Linguistics |
+
+These questions follow the content question guidelines defined in the core concepts section. Each question is specific, concise, conversational, and designed to provoke curiosity rather than define a subject.
+
+**Primary demo question: "Were the Stoics right that most of your problems are imaginary?"**
+This is the question used for the main walkthrough and demonstration. It should have complete mock content across all five levels. The content should explore Stoic philosophy through the lens of this specific question, progressively deepening from "what did the Stoics actually mean by this?" to advanced critiques and modern applications.
+
+**Secondary demo question: "What happens to time when you fall into a black hole?"**
+A second question to demonstrate question switching and to show the app works across different subject areas. This can have content for levels 1 through 3 only.
 
 ### Mock content per level (for the primary topic)
 
@@ -297,13 +349,15 @@ This means approximately **40 to 60 pieces of mock content** for the primary top
 
 The prototype is considered successful if the following are true:
 
-**The core loop is clear and compelling.** A new user picking up the app should understand within 10 seconds what the app does and how to use it. The flow from topic input to content consumption to progression should feel intuitive with no instruction needed.
+**The core loop is clear and compelling.** A new user picking up the app should understand within 10 seconds what the app does and how to use it. The flow from question selection to content consumption to progression should feel intuitive with no instruction needed.
 
 **The content variety feels engaging.** Scrolling the feed should feel dynamic and interesting, not repetitive. The visual distinction between content types should be immediate and the transitions between them smooth.
 
 **The progression system is motivating.** The level indicator, progress tracking, and level-up moments should create a clear sense of advancement. The user should feel pulled forward by curiosity about what the next level contains.
 
-**Topic switching is frictionless.** Moving between topics and returning to a previous topic should feel easy and not disruptive to the experience.
+**Question switching is frictionless.** Moving between questions and returning to a previous question should feel easy and not disruptive to the experience.
+
+**The question selection is compelling.** Users should see the proposed questions and immediately feel drawn to tap one. The questions should spark curiosity on their own, before any content is consumed.
 
 **The visual design feels premium and immersive.** The app should not look like a generic education app or a gamified quiz app. It should feel like a carefully crafted experience that respects the user's intelligence and curiosity.
 
@@ -315,7 +369,4 @@ These items are documented here for context and future planning. They are explic
 - **Real AI content generation:** Integration with LLMs (Claude) for text, quizzes, and discussions. Integration with image generation models for visual content. Integration with text-to-speech and video generation for audio/video content.
 - **Backend and data persistence:** User accounts, cloud-saved progress, content caching, and syncing across devices.
 - **Adaptive difficulty:** AI that adjusts content complexity based on quiz performance and engagement patterns, rather than fixed level gates.
-- **Community features:** Shared discussions, leaderboards, or collaborative challenges with other users exploring the same topic.
 - **Content bookmarking and review:** Ability to save, revisit, or share individual content pieces.
-- **Notifications and streaks:** Daily reminders, streak tracking, and push notifications to drive retention.
-- **Monetization:** Subscription model, content gating, or premium topic access.
