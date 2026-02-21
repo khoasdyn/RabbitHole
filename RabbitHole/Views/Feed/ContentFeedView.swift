@@ -7,6 +7,10 @@ struct ContentFeedView: View {
 
     @State private var selectedArticle: ContentItem?
     @State private var selectedQuiz: ContentItem?
+    @State private var selectedDiscussion: ContentItem?
+    @State private var selectedChallenge: ContentItem?
+    @State private var selectedVideo: ContentItem?
+    @State private var selectedImage: ContentItem?
 
     private var sortedItems: [ContentItem] {
         topic.contentItems
@@ -43,8 +47,20 @@ struct ContentFeedView: View {
             .sheet(item: $selectedArticle) { article in
                 ArticleDetailView(item: article)
             }
+            .sheet(item: $selectedImage) { image in
+                ImageDetailView(item: image, accentColor: topic.accentColor)
+            }
+            .sheet(item: $selectedChallenge) { challenge in
+                ChallengeDetailView(item: challenge, accentColor: topic.accentColor)
+            }
             .fullScreenCover(item: $selectedQuiz) { quiz in
                 QuizFlowView(item: quiz)
+            }
+            .fullScreenCover(item: $selectedDiscussion) { discussion in
+                DiscussionThreadView(item: discussion)
+            }
+            .fullScreenCover(item: $selectedVideo) { video in
+                VideoDetailView(item: video)
             }
         }
     }
@@ -76,25 +92,25 @@ struct ContentFeedView: View {
         let type = ContentType(rawValue: item.type) ?? .article
         switch type {
         case .article:
-            Button { selectedArticle = item } label: {
-                ArticleCard(item: item)
-            }
-            .buttonStyle(.plain)
+            Button { selectedArticle = item } label: { ArticleCard(item: item) }
+                .buttonStyle(.plain)
         case .quiz:
-            Button { selectedQuiz = item } label: {
-                QuizCard(item: item)
-            }
-            .buttonStyle(.plain)
+            Button { selectedQuiz = item } label: { QuizCard(item: item) }
+                .buttonStyle(.plain)
         case .video:
-            VideoCard(item: item)
+            Button { selectedVideo = item } label: { VideoCard(item: item) }
+                .buttonStyle(.plain)
         case .imageCard:
-            ImageCardView(item: item, accentColor: topic.accentColor)
+            Button { selectedImage = item } label: { ImageCardView(item: item, accentColor: topic.accentColor) }
+                .buttonStyle(.plain)
+        case .discussion:
+            Button { selectedDiscussion = item } label: { DiscussionCard(item: item) }
+                .buttonStyle(.plain)
+        case .challenge:
+            Button { selectedChallenge = item } label: { ChallengeCard(item: item, accentColor: topic.accentColor) }
+                .buttonStyle(.plain)
         case .survey:
             SurveyCard(item: item)
-        case .discussion:
-            DiscussionCard(item: item)
-        case .challenge:
-            ChallengeCard(item: item, accentColor: topic.accentColor)
         }
     }
 }

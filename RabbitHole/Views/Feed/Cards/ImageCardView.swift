@@ -7,19 +7,30 @@ struct ImageCardView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Image placeholder
+            // Real image or fallback
             ZStack {
-                LinearGradient(
-                    colors: [accentColor.opacity(0.3), accentColor.opacity(0.1)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .frame(height: 160)
+                if let url = Bundle.main.url(forResource: "image-demo", withExtension: "png"),
+                   let data = try? Data(contentsOf: url),
+                   let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: 160)
+                        .clipped()
+                } else {
+                    LinearGradient(
+                        colors: [accentColor.opacity(0.3), accentColor.opacity(0.1)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .frame(height: 160)
 
-                Image(systemName: "photo")
-                    .font(.system(size: 36))
-                    .foregroundStyle(accentColor.opacity(0.5))
+                    Image(systemName: "photo")
+                        .font(.system(size: 36))
+                        .foregroundStyle(accentColor.opacity(0.5))
+                }
             }
+            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 14, topTrailingRadius: 14))
 
             VStack(alignment: .leading, spacing: 6) {
                 typeBadge
