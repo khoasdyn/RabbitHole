@@ -1,12 +1,11 @@
 import SwiftUI
 
 struct DiscussionCard: View {
-
     let item: ContentItem
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            typeBadge
+        VStack(alignment: .leading, spacing: CardStyle.spacing) {
+            TypeBadge(type: .discussion)
 
             Text(item.title)
                 .font(.subheadline)
@@ -29,20 +28,13 @@ struct DiscussionCard: View {
             }
             .padding(.top, 4)
         }
-        .padding(14)
+        .padding(CardStyle.padding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemBackground))
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: CardStyle.cornerRadius)
                 .strokeBorder(ContentType.discussion.color.opacity(0.3), lineWidth: 1)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-    }
-
-    private var typeBadge: some View {
-        Label(ContentType.discussion.label, systemImage: ContentType.discussion.iconName)
-            .font(.caption2)
-            .fontWeight(.semibold)
-            .foregroundStyle(ContentType.discussion.color)
+        .clipShape(RoundedRectangle(cornerRadius: CardStyle.cornerRadius))
     }
 }

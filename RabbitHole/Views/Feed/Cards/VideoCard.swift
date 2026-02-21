@@ -2,26 +2,23 @@ import SwiftUI
 import AVKit
 
 struct VideoCard: View {
-
     let item: ContentItem
     @State private var thumbnail: UIImage?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Thumbnail
             ZStack {
                 Color(.tertiarySystemBackground)
-                    .frame(height: 180)
+                    .frame(height: CardStyle.mediaHeight)
 
                 if let thumbnail {
                     Image(uiImage: thumbnail)
                         .resizable()
                         .scaledToFill()
-                        .frame(height: 180)
+                        .frame(height: CardStyle.mediaHeight)
                         .clipped()
                 }
 
-                // Play overlay
                 VStack(spacing: 8) {
                     Image(systemName: "play.circle.fill")
                         .font(.system(size: 48))
@@ -40,10 +37,11 @@ struct VideoCard: View {
                     }
                 }
             }
-            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 14, topTrailingRadius: 14))
+            .clipShape(UnevenRoundedRectangle(topLeadingRadius: CardStyle.cornerRadius, topTrailingRadius: CardStyle.cornerRadius))
 
             VStack(alignment: .leading, spacing: 6) {
-                typeBadge
+                TypeBadge(type: .video)
+
                 Text(item.title)
                     .font(.subheadline)
                     .fontWeight(.semibold)
@@ -57,20 +55,11 @@ struct VideoCard: View {
                         .lineLimit(2)
                 }
             }
-            .padding(14)
+            .padding(CardStyle.padding)
         }
         .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .task {
-            await generateThumbnail()
-        }
-    }
-
-    private var typeBadge: some View {
-        Label(ContentType.video.label, systemImage: ContentType.video.iconName)
-            .font(.caption2)
-            .fontWeight(.semibold)
-            .foregroundStyle(ContentType.video.color)
+        .clipShape(RoundedRectangle(cornerRadius: CardStyle.cornerRadius))
+        .task { await generateThumbnail() }
     }
 
     private func generateThumbnail() async {
@@ -81,9 +70,7 @@ struct VideoCard: View {
         generator.maximumSize = CGSize(width: 600, height: 400)
         do {
             let cgImage = try await generator.image(at: .init(seconds: 1, preferredTimescale: 600)).image
-            await MainActor.run {
-                thumbnail = UIImage(cgImage: cgImage)
-            }
+            await MainActor.run { thumbnail = UIImage(cgImage: cgImage) }
         } catch {}
     }
 }

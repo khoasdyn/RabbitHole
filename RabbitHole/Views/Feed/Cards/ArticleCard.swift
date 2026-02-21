@@ -1,13 +1,12 @@
 import SwiftUI
 
 struct ArticleCard: View {
-
     let item: ContentItem
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: CardStyle.spacing) {
             HStack {
-                typeBadge
+                TypeBadge(type: .article)
                 Spacer()
                 if let minutes = item.estimatedMinutes {
                     Text("\(minutes) min read")
@@ -29,16 +28,9 @@ struct ArticleCard: View {
                     .lineLimit(2)
             }
         }
-        .padding(14)
+        .padding(CardStyle.padding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-    }
-
-    private var typeBadge: some View {
-        Label(ContentType.article.label, systemImage: ContentType.article.iconName)
-            .font(.caption2)
-            .fontWeight(.semibold)
-            .foregroundStyle(ContentType.article.color)
+        .clipShape(RoundedRectangle(cornerRadius: CardStyle.cornerRadius))
     }
 }

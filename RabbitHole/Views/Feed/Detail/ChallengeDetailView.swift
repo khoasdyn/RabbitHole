@@ -1,11 +1,8 @@
 import SwiftUI
 
 struct ChallengeDetailView: View {
-
     let item: ContentItem
-    let accentColor: Color
     @Environment(\.dismiss) private var dismiss
-
     @State private var userInput = ""
     @State private var isCompleted = false
 
@@ -23,27 +20,20 @@ struct ChallengeDetailView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // Badge
-                    Label(ContentType.challenge.label, systemImage: ContentType.challenge.iconName)
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(ContentType.challenge.color)
+                    TypeBadge(type: .challenge)
 
-                    // Title
                     Text(item.title)
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundStyle(Color(.label))
                         .fixedSize(horizontal: false, vertical: true)
 
-                    // Instructions
                     Text(instructions)
                         .font(.body)
                         .foregroundStyle(Color(.secondaryLabel))
                         .lineSpacing(5)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    // Input area
                     if !isCompleted {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Your response")
@@ -54,7 +44,7 @@ struct ChallengeDetailView: View {
                             TextField("Write here...", text: $userInput, axis: .vertical)
                                 .font(.body)
                                 .lineLimit(4...10)
-                                .padding(14)
+                                .padding(CardStyle.padding)
                                 .background(Color(.tertiarySystemBackground))
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
@@ -70,7 +60,7 @@ struct ChallengeDetailView: View {
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 14)
+                                .padding(.vertical, CardStyle.padding)
                                 .background(
                                     userInput.trimmingCharacters(in: .whitespaces).isEmpty
                                         ? Color(.tertiarySystemBackground)
@@ -119,6 +109,6 @@ struct ChallengeDetailView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
         .background(ContentType.challenge.color.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: CardStyle.cornerRadius))
     }
 }

@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct ArticleDetailView: View {
-
     let item: ContentItem
     @Environment(\.dismiss) private var dismiss
 
@@ -9,12 +8,8 @@ struct ArticleDetailView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    // Meta
                     HStack {
-                        Label(ContentType.article.label, systemImage: ContentType.article.iconName)
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(ContentType.article.color)
+                        TypeBadge(type: .article)
                         Spacer()
                         if let minutes = item.estimatedMinutes {
                             Text("\(minutes) min read")
@@ -23,14 +18,12 @@ struct ArticleDetailView: View {
                         }
                     }
 
-                    // Title
                     Text(item.title)
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundStyle(Color(.label))
                         .fixedSize(horizontal: false, vertical: true)
 
-                    // Subtitle
                     if let subtitle = item.subtitle {
                         Text(subtitle)
                             .font(.subheadline)
@@ -39,7 +32,6 @@ struct ArticleDetailView: View {
 
                     Spacer().frame(height: 4)
 
-                    // Body
                     if let body = item.body {
                         Text(body)
                             .font(.body)
@@ -50,7 +42,6 @@ struct ArticleDetailView: View {
 
                     Spacer().frame(height: 24)
 
-                    // Done button
                     Button {
                         item.isCompleted = true
                         dismiss()
@@ -62,7 +53,7 @@ struct ArticleDetailView: View {
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
+                        .padding(.vertical, CardStyle.padding)
                         .background(Color(.tertiarySystemBackground))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }

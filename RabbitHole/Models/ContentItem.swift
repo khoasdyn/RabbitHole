@@ -4,8 +4,6 @@ import SwiftData
 @Model
 final class ContentItem {
 
-    // MARK: - Properties
-
     var type: String
     var level: Int
     var title: String
@@ -16,7 +14,9 @@ final class ContentItem {
     var sortOrder: Int
     var topic: Topic?
 
-    // MARK: - Init
+    var contentType: ContentType {
+        ContentType(rawValue: type) ?? .article
+    }
 
     init(
         type: String,

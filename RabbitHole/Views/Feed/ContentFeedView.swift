@@ -5,12 +5,8 @@ struct ContentFeedView: View {
     let topic: Topic
     var onBack: () -> Void
 
-    @State private var selectedArticle: ContentItem?
-    @State private var selectedQuiz: ContentItem?
-    @State private var selectedDiscussion: ContentItem?
-    @State private var selectedChallenge: ContentItem?
-    @State private var selectedVideo: ContentItem?
-    @State private var selectedImage: ContentItem?
+    @State private var selectedItem: ContentItem?
+    @State private var presentAsFullScreen = false
 
     private var sortedItems: [ContentItem] {
         topic.contentItems
@@ -41,28 +37,32 @@ struct ContentFeedView: View {
                     }
                 }
                 ToolbarItem(placement: .principal) {
-                    LevelPill(level: 1, color: topic.accentColor)
+                    LevelPill(level: .newcomer, color: topic.accentColor)
                 }
             }
-            .sheet(item: $selectedArticle) { article in
-                ArticleDetailView(item: article)
+            .sheet(item: sheetBinding) { item in
+                detailView(for: item)
             }
-            .sheet(item: $selectedImage) { image in
-                ImageDetailView(item: image, accentColor: topic.accentColor)
-            }
-            .sheet(item: $selectedChallenge) { challenge in
-                ChallengeDetailView(item: challenge, accentColor: topic.accentColor)
-            }
-            .fullScreenCover(item: $selectedQuiz) { quiz in
-                QuizFlowView(item: quiz)
-            }
-            .fullScreenCover(item: $selectedDiscussion) { discussion in
-                DiscussionThreadView(item: discussion)
-            }
-            .fullScreenCover(item: $selectedVideo) { video in
-                VideoDetailView(item: video)
+            .fullScreenCover(item: fullScreenBinding) { item in
+                detailView(for: item)
             }
         }
+    }
+
+    // MARK: - Presentation bindings
+
+    private var sheetBinding: Binding<ContentItem?> {
+        Binding(
+            get: { presentAsFullScreen ? nil : selectedItem },
+            set: { selectedItem = $0 }
+        )
+    }
+
+    private var fullScreenBinding: Binding<ContentItem?> {
+        Binding(
+            get: { presentAsFullScreen ? selectedItem : nil },
+            set: { selectedItem = $0 }
+        )
     }
 
     // MARK: - Header
@@ -89,28 +89,47 @@ struct ContentFeedView: View {
 
     @ViewBuilder
     private func contentCard(for item: ContentItem) -> some View {
-        let type = ContentType(rawValue: item.type) ?? .article
-        switch type {
+        switch item.contentType {
         case .article:
-            Button { selectedArticle = item } label: { ArticleCard(item: item) }
+            Button { select(item, fullScreen: false) } label: { ArticleCard(item: item) }
                 .buttonStyle(.plain)
         case .quiz:
-            Button { selectedQuiz = item } label: { QuizCard(item: item) }
+            Button { select(item, fullScreen: true) } label: { QuizCard(item: item) }
                 .buttonStyle(.plain)
         case .video:
-            Button { selectedVideo = item } label: { VideoCard(item: item) }
+            Button { select(item, fullScreen: true) } label: { VideoCard(item: item) }
                 .buttonStyle(.plain)
         case .imageCard:
-            Button { selectedImage = item } label: { ImageCardView(item: item, accentColor: topic.accentColor) }
+            Button { select(item, fullScreen: false) } label: { ImageCard(item: item) }
                 .buttonStyle(.plain)
         case .discussion:
-            Button { selectedDiscussion = item } label: { DiscussionCard(item: item) }
+            Button { select(item, fullScreen: true) } label: { DiscussionCard(item: item) }
                 .buttonStyle(.plain)
         case .challenge:
-            Button { selectedChallenge = item } label: { ChallengeCard(item: item, accentColor: topic.accentColor) }
+            Button { select(item, fullScreen: false) } label: { ChallengeCard(item: item) }
                 .buttonStyle(.plain)
         case .survey:
             SurveyCard(item: item)
+        }
+    }
+
+    private func select(_ item: ContentItem, fullScreen: Bool) {
+        presentAsFullScreen = fullScreen
+        selectedItem = item
+    }
+
+    // MARK: - Detail router
+
+    @ViewBuilder
+    private func detailView(for item: ContentItem) -> some View {
+        switch item.contentType {
+        case .article:  ArticleDetailView(item: item)
+        case .quiz:     QuizFlowView(item: item)
+        case .video:    VideoDetailView(item: item)
+        case .imageCard: ImageDetailView(item: item)
+        case .discussion: DiscussionThreadView(item: item)
+        case .challenge: ChallengeDetailView(item: item)
+        case .survey:   EmptyView()
         }
     }
 }
@@ -118,11 +137,11 @@ struct ContentFeedView: View {
 // MARK: - Level pill
 
 private struct LevelPill: View {
-    let level: Int
+    let level: Level
     let color: Color
 
     var body: some View {
-        Text("Level \(level) · Newcomer")
+        Text("Level \(level.rawValue) · \(level.label)")
             .font(.caption)
             .fontWeight(.semibold)
             .foregroundStyle(color)

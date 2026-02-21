@@ -7,7 +7,7 @@ struct RabbitHoleApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .modelContainer(for: [Topic.self, ContentItem.self, UserProgress.self])
         }
+        .modelContainer(for: [Topic.self, ContentItem.self, UserProgress.self])
     }
 }

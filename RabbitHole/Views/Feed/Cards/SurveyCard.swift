@@ -1,13 +1,12 @@
 import SwiftUI
 
 struct SurveyCard: View {
-
     let item: ContentItem
     @State private var selectedIndex: Int?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            typeBadge
+        VStack(alignment: .leading, spacing: CardStyle.spacing) {
+            TypeBadge(type: .survey)
 
             Text(item.title)
                 .font(.subheadline)
@@ -43,10 +42,10 @@ struct SurveyCard: View {
                 .padding(.top, 2)
             }
         }
-        .padding(14)
+        .padding(CardStyle.padding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: CardStyle.cornerRadius))
     }
 
     // MARK: - Result row
@@ -70,7 +69,6 @@ struct SurveyCard: View {
                     Capsule()
                         .fill(Color(.tertiarySystemBackground))
                         .frame(height: 6)
-
                     Capsule()
                         .fill(isSelected ? ContentType.survey.color : Color(.quaternaryLabel))
                         .frame(width: geo.size.width * CGFloat(percent) / 100, height: 6)
@@ -86,21 +84,12 @@ struct SurveyCard: View {
 
     // MARK: - Parsing
 
-    private var typeBadge: some View {
-        Label(ContentType.survey.label, systemImage: ContentType.survey.iconName)
-            .font(.caption2)
-            .fontWeight(.semibold)
-            .foregroundStyle(ContentType.survey.color)
-    }
-
     private var parsedData: SurveyData? {
         guard let body = item.body,
               let data = body.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let options = json["options"] as? [String],
-              let results = json["results"] as? [Int] else {
-            return nil
-        }
+              let results = json["results"] as? [Int] else { return nil }
         let total = results.reduce(0, +)
         let percents = results.map { total > 0 ? Int(round(Double($0) / Double(total) * 100)) : 0 }
         return SurveyData(options: options, percents: percents)

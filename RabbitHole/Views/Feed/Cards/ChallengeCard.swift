@@ -1,13 +1,11 @@
 import SwiftUI
 
 struct ChallengeCard: View {
-
     let item: ContentItem
-    let accentColor: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            typeBadge
+        VStack(alignment: .leading, spacing: CardStyle.spacing) {
+            TypeBadge(type: .challenge)
 
             Text(item.title)
                 .font(.subheadline)
@@ -39,16 +37,9 @@ struct ChallengeCard: View {
             }
             .padding(.top, 4)
         }
-        .padding(14)
+        .padding(CardStyle.padding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-    }
-
-    private var typeBadge: some View {
-        Label(ContentType.challenge.label, systemImage: ContentType.challenge.iconName)
-            .font(.caption2)
-            .fontWeight(.semibold)
-            .foregroundStyle(ContentType.challenge.color)
+        .clipShape(RoundedRectangle(cornerRadius: CardStyle.cornerRadius))
     }
 }
