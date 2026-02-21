@@ -1,6 +1,6 @@
 # Rabbit Hole: Technical requirements
 
-Companion document to `rabbit-hole-prd.md`. This document defines the technical stack, architecture, coding standards, and implementation guidelines for the Rabbit Hole prototype.
+Companion document to `rabbit-hole-prd.md`. Defines the technical stack, architecture, coding standards, and implementation guidelines.
 
 
 ## Tech stack
@@ -11,96 +11,69 @@ Companion document to `rabbit-hole-prd.md`. This document defines the technical 
 | **Framework** | SwiftUI |
 | **Language** | Swift |
 | **Minimum target** | iOS 26 |
-| **Architecture** | MVVM (Model-View-ViewModel) |
-| **Data layer** | SwiftData for persistence, mock data seeded on first launch |
-| **Navigation** | SwiftUI `NavigationStack` and `TabView` |
-| **Media** | `AVKit` for video player UI |
+| **Data layer** | SwiftData (`@Model` classes, `ModelContainer`) |
+| **Navigation** | `NavigationStack`, conditional root view (tab bar planned) |
+| **Media** | `AVKit` for video player |
 | **Icons** | SF Symbols exclusively |
-| **Animations** | SwiftUI native animations and transitions |
-| **Dependencies** | None. Zero third-party packages. |
-| **Persistence** | SwiftData with `@Model` classes and `ModelContainer` |
+| **Animations** | SwiftUI native |
+| **Dependencies** | None |
 
-Everything must be achievable with native SwiftUI and Apple-provided frameworks only.
+Everything uses native SwiftUI and Apple-provided frameworks only.
 
 
 ## Color system
 
-Use **only iOS built-in system colors**. No custom hex values, no custom `Color` extensions, no hard-coded RGB.
+**Only iOS built-in system colors.** No custom hex values, no `Color` extensions, no hard-coded RGB.
 
-### Backgrounds and surfaces
+- Backgrounds: `Color(.systemBackground)`, `.secondarySystemBackground`, `.tertiarySystemBackground`
+- Text: `Color(.label)`, `.secondaryLabel`, `.tertiaryLabel`
+- Accents: System semantic colors (`.blue`, `.orange`, `.green`, etc.) for content type indicators and topic theming
+- Dark aesthetic: Achieved via `preferredColorScheme(.dark)` modifier, not custom dark colors
 
-- `Color(.systemBackground)` for primary backgrounds
-- `Color(.secondarySystemBackground)` for card surfaces
-- `Color(.tertiarySystemBackground)` for elevated elements
-- `Color(.systemGroupedBackground)` and `Color(.secondarySystemGroupedBackground)` for grouped layouts
-
-### Text
-
-- `Color(.label)` for primary text
-- `Color(.secondaryLabel)` for subtitles and secondary info
-- `Color(.tertiaryLabel)` for placeholders and hints
-
-### Accents and semantics
-
-- `.accentColor` / `.tint()` for primary interactive elements
-- `Color.blue`, `Color.orange`, `Color.green`, `Color.purple`, `Color.red`, etc. (the system-provided semantic colors) for content type indicators, level theming, and accent variation
-- `Color(.separator)` for dividers and borders
-- `Color(.systemFill)` and variants for subtle fills
-
-### Why this matters
-
-System colors automatically adapt to light mode, dark mode, and increased contrast accessibility settings. By using them exclusively, the app gets correct appearance across all contexts for free with no manual color scheme management.
-
-The dark, immersive aesthetic described in the PRD should be achieved through the app's `preferredColorScheme(.dark)` modifier and thoughtful use of system background tiers, not through custom dark color values.
+System colors adapt automatically to light/dark mode and accessibility settings.
 
 
 ## SwiftData architecture
 
-### Model container setup
+### Model container
 
-Configure the `ModelContainer` at the app entry point and inject it into the environment:
+Configured on `WindowGroup` in `RabbitHoleApp.swift`:
 
 ```swift
-@main
-struct RabbitHoleApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-        .modelContainer(for: [Topic.self, ContentItem.self, UserProgress.self])
-    }
-}
+.modelContainer(for: [Topic.self, ContentItem.self, UserProgress.self])
 ```
 
-### Model definitions
-
-All persistent data types use `@Model` classes instead of plain structs. Example:
+### Models (as currently implemented)
 
 ```swift
-@Model
-class Topic {
+@Model final class Topic {
     var question: String
-    var subjectArea: String
-    var accentColorName: String
+    var subjectArea: String       // e.g. "Philosophy", "Custom"
+    var accentColorName: String   // maps to system Color via extension
+    var iconName: String          // SF Symbol name
     var isActive: Bool
     var createdAt: Date
-    @Relationship(deleteRule: .cascade) var contentItems: [ContentItem]
-    @Relationship(deleteRule: .cascade) var progress: UserProgress?
+    @Relationship(deleteRule: .cascade, inverse: \ContentItem.topic)
+    var contentItems: [ContentItem]
+    @Relationship(deleteRule: .cascade, inverse: \UserProgress.topic)
+    var progress: UserProgress?
 }
 
-@Model
-class ContentItem {
-    var type: String  // maps to ContentType enum raw value
+@Model final class ContentItem {
+    var type: String              // ContentType raw value
     var level: Int
     var title: String
     var subtitle: String?
+    var body: String?             // plain text or JSON for structured types
     var estimatedMinutes: Int?
     var isCompleted: Bool
+    var sortOrder: Int
     var topic: Topic?
+
+    var contentType: ContentType  // computed, not persisted
 }
 
-@Model
-class UserProgress {
+@Model final class UserProgress {
     var currentLevel: Int
     var completedItems: Int
     var levelUnlockedAt: Date?
@@ -108,272 +81,137 @@ class UserProgress {
 }
 ```
 
-### Querying data
+### Data querying
 
-Use `@Query` in views to fetch data directly:
-
-```swift
-struct ContentFeedView: View {
-    @Query(sort: \ContentItem.level) var items: [ContentItem]
-    // ...
-}
-```
-
-For filtered queries (e.g., content for the active topic at the current level), use `#Predicate` and pass filter parameters.
+`@Query` in `ContentView` fetches all topics. Content items are accessed through the `Topic.contentItems` relationship and filtered/sorted in the view.
 
 ### Mock data seeding
 
-On first launch, seed the SwiftData store with pre-built mock content. Use a flag in `UserDefaults` to check whether seeding has already occurred:
+`MockDataSeeder.seedIfNeeded(context:)` checks if any topics exist via `fetchCount`. If zero, it inserts 5 seeded topics and Level 1 content for the Stoicism question. Called in `ContentView.task`.
 
-```swift
-func seedMockDataIfNeeded(context: ModelContext) {
-    let hasSeeded = UserDefaults.standard.bool(forKey: "hasSeededMockData")
-    guard !hasSeeded else { return }
+### User-created topics
 
-    // Insert mock topics, content items, and initial progress
-    // ...
-
-    UserDefaults.standard.set(true, forKey: "hasSeededMockData")
-}
-```
-
-Call this in the app's root view `.onAppear` or in the `App` init.
-
-### Why SwiftData over JSON files
-
-SwiftData gives us queryable, filterable data with relationships (topic → content items → progress) out of the box. It also establishes the correct persistence pattern for when the app moves beyond the prototype, so the transition to real data will require no architectural changes.
+When a user submits a custom question, `ContentView` creates a new `Topic` with `subjectArea: "Custom"`, a round-robin accent color, and no content items. The topic persists in SwiftData.
 
 
-## MVVM pattern
+## Architecture
 
-The project follows a strict MVVM separation:
+The prototype uses a lightweight approach rather than strict MVVM:
 
-**Model:** Plain Swift structs representing data (topics, content items, levels, quiz questions, progress states). All models conform to `Identifiable` and `Codable` where appropriate.
+- **Models:** `@Model` classes with SwiftData persistence
+- **Views:** SwiftUI views using `@Query` and `@Environment(\.modelContext)` directly
+- **Shared components:** `TypeBadge`, `CardStyle`, `BundleImage` in `Components/`
+- **No ViewModels** in the current build. `@Query` handles data reactivity. ViewModels will be introduced when business logic complexity warrants it (e.g., level progression).
 
-**View:** SwiftUI views that are purely declarative. Views should contain no business logic, no data transformation, and no direct data manipulation. They read state from ViewModels and send user actions back to them.
-
-**ViewModel:** `@Observable` classes (or `ObservableObject` with `@Published` if broader compatibility is needed) that own the business logic, hold state, and expose computed properties for views to consume. One ViewModel per major screen or feature area.
-
-### Folder structure
+### Folder structure (current)
 
 ```
 RabbitHole/
-├── App/
-│   └── RabbitHoleApp.swift
+├── RabbitHoleApp.swift
+├── ContentView.swift
 ├── Models/
-│   ├── Topic.swift              // @Model
-│   ├── ContentItem.swift        // @Model
-│   ├── UserProgress.swift       // @Model
-│   ├── ContentType.swift        // enum
-│   ├── Level.swift              // enum or struct
-│   └── ContentPayload.swift     // type-specific data
-├── ViewModels/
-│   ├── QuestionSelectionViewModel.swift
-│   ├── ContentFeedViewModel.swift
-│   ├── ProgressViewModel.swift
-│   └── QuestionManagerViewModel.swift
+│   ├── Topic.swift
+│   ├── ContentItem.swift
+│   ├── UserProgress.swift
+│   ├── ContentType.swift          // enum with label, iconName, color
+│   └── Level.swift                // enum with label, description
+├── Components/
+│   └── SharedComponents.swift     // TypeBadge, CardStyle, BundleImage
+├── Extensions/
+│   └── Topic+UI.swift             // accentColor computed property
 ├── Views/
 │   ├── Welcome/
-│   │   └── WelcomeView.swift
+│   │   ├── WelcomeView.swift      // prompt input + curated cards
 │   │   └── QuestionCardView.swift
-│   ├── Feed/
-│   │   ├── ContentFeedView.swift
-│   │   ├── Cards/
-│   │   │   ├── VideoCardView.swift
-│   │   │   ├── ArticleCardView.swift
-│   │   │   ├── ImageCardView.swift
-│   │   │   ├── QuizCardView.swift
-│   │   │   ├── DiscussionCardView.swift
-│   │   │   ├── SurveyCardView.swift
-│   │   │   └── ChallengeCardView.swift
-│   │   └── Detail/
-│   │       ├── VideoDetailView.swift
-│   │       ├── ArticleDetailView.swift
-│   │       ├── QuizFlowView.swift
-│   │       ├── DiscussionThreadView.swift
-│   │       └── ChallengeDetailView.swift
-│   ├── Progress/
-│   │   ├── LevelProgressView.swift
-│   │   └── LevelUpView.swift
-│   └── Explore/
-│       └── QuestionManagementView.swift
-├── Components/
-│   ├── LevelBadge.swift
-│   ├── ProgressBar.swift
-│   └── ContentTypeIcon.swift
+│   └── Feed/
+│       ├── ContentFeedView.swift  // feed + card/detail routing
+│       ├── Cards/
+│       │   ├── ArticleCard.swift
+│       │   ├── VideoCard.swift
+│       │   ├── ImageCard.swift
+│       │   ├── QuizCard.swift
+│       │   ├── DiscussionCard.swift
+│       │   ├── SurveyCard.swift
+│       │   └── ChallengeCard.swift
+│       └── Detail/
+│           ├── ArticleDetailView.swift
+│           ├── VideoDetailView.swift
+│           ├── ImageDetailView.swift
+│           ├── QuizFlowView.swift
+│           ├── DiscussionThreadView.swift
+│           └── ChallengeDetailView.swift
 ├── MockData/
 │   ├── MockDataSeeder.swift
-│   ├── StoicismMockContent.swift
-│   └── AstrophysicsMockContent.swift
-├── Extensions/
-│   └── (any small utility extensions)
-├── Resources/
-│   └── Assets.xcassets
-└── Preview Content/
-    └── Preview Assets.xcassets
+│   └── StoicismMockContent.swift
+└── Resources/
+    ├── Images/
+    │   └── image-demo.png
+    └── Videos/
+        └── video-demo.mp4
 ```
 
-### Navigation architecture
+### Navigation (current)
 
-Use SwiftUI's `NavigationStack` with a path-based approach for programmatic navigation. The root container is a `TabView` with three tabs (Feed, Progress, Explore) as defined in the PRD.
+`ContentView` conditionally shows `WelcomeView` or `ContentFeedView` based on `selectedTopic` state. Detail views are presented via `.sheet` (articles, images, challenges) or `.fullScreenCover` (quizzes, discussions, videos) from a single `selectedItem` state in `ContentFeedView`.
 
-```swift
-// Conceptual structure
-TabView {
-    NavigationStack { ContentFeedView() }
-        .tabItem { Label("Feed", systemImage: "rectangle.stack") }
+### Navigation (planned)
 
-    NavigationStack { LevelProgressView() }
-        .tabItem { Label("Progress", systemImage: "chart.bar") }
-
-    NavigationStack { QuestionManagementView() }
-        .tabItem { Label("Explore", systemImage: "safari") }
-}
-```
+`TabView` with Feed, Progress, and Explore tabs. `NavigationStack` within each tab.
 
 
 ## Coding standards
 
 ### Native components first
 
-Always prefer native SwiftUI components over custom implementations. Specifically:
+Prefer native SwiftUI components: `ScrollView`, `LazyVStack`, `NavigationStack`, `Sheet`, `fullScreenCover`, `VideoPlayer`, `Label`, `Button`. Only build custom when no native equivalent exists.
 
-- Use `List`, `ScrollView`, `LazyVStack` for content lists, not custom scroll implementations
-- Use `NavigationStack` and `NavigationLink` for navigation, not manual view swapping
-- Use `TabView` for tab navigation
-- Use `Sheet`, `fullScreenCover`, and `popover` for modal presentations
-- Use `ProgressView` for loading states
-- Use `Toggle`, `Picker`, `Slider` for form inputs
-- Use `Label` with SF Symbols for icon-text pairs
-- Use `AsyncImage` for image loading patterns (even with local mock data, to establish the pattern)
-- Use native `VideoPlayer` from `AVKit` for video player UI
-- Use `withAnimation`, `matchedGeometryEffect`, and `.transition()` for animations rather than manual frame/offset manipulation
+### Conventions
 
-Only build a custom component when no native equivalent exists or when the native component cannot achieve the required design.
-
-### Swift and SwiftUI conventions
-
-**Naming:** Follow Swift API Design Guidelines. Types and protocols are `UpperCamelCase`. Properties, methods, and variables are `lowerCamelCase`. Boolean properties read as assertions (e.g., `isCompleted`, `hasUnlockedNextLevel`).
-
-**Access control:** Mark everything with the most restrictive access level that works. Use `private` for properties and methods that don't need external access. Use `private(set)` for read-only external properties.
-
-**Property wrappers:** Use the correct wrapper for the job. `@State` for view-local state. `@Binding` for parent-owned state passed to child views. `@Environment` for environment values. `@Observable` (or `@StateObject`/`@ObservedObject`) for ViewModels.
-
-**View composition:** Break views into small, focused components. If a view body exceeds roughly 40 lines, extract subviews. Use `ViewBuilder` functions or computed properties for conditional sections within a view, but prefer extracted subviews over long computed properties.
-
-**No force unwrapping.** Never use `!` to force unwrap optionals. Use `if let`, `guard let`, or nil coalescing (`??`) with sensible defaults.
-
-**No magic numbers or strings.** Define constants for spacing values, corner radii, font sizes, and durations. Group them in a dedicated `Constants` enum or extend `CGFloat`/`Font` as appropriate.
-
-### Code cleanliness
-
-- Remove all commented-out code before committing
-- Remove all unused imports
-- Every file should have a single clear responsibility
-- No print statements left in production code (use `#if DEBUG` if needed during development)
-- Keep files under 200 lines where possible; if a file grows beyond this, look for extraction opportunities
-- Use `// MARK: -` sections to organize larger files logically
+- Types: `UpperCamelCase`. Properties: `lowerCamelCase`. Booleans: `isCompleted`, `hasUnlockedNextLevel`
+- Most restrictive access control. `private` by default.
+- `@State` for view-local state, `@Query` for SwiftData, `@Environment` for context
+- Extract subviews when body exceeds ~40 lines
+- No force unwrapping. No magic numbers (use `CardStyle` constants).
+- Files under 200 lines. `// MARK: -` for organization.
 
 
-## Mock data guidelines
+## Content data format
 
-### Data format
+Type-specific data is stored as JSON in `ContentItem.body`:
 
-Mock data is defined as static arrays in dedicated Swift files under `MockData/` and inserted into the SwiftData `ModelContext` on first launch via `MockDataSeeder`. This keeps mock content separate from app logic while using the same persistence layer the production app will use.
-
-```swift
-// Example: MockDataSeeder.swift
-struct MockDataSeeder {
-    static func seed(context: ModelContext) {
-        let stoicism = Topic(
-            question: "Were the Stoics right that most of your problems are imaginary?",
-            subjectArea: "Philosophy",
-            accentColorName: "orange",
-            isActive: true,
-            createdAt: .now
-        )
-        context.insert(stoicism)
-
-        let item = ContentItem(
-            type: ContentType.article.rawValue,
-            level: 1,
-            title: "What is Stoicism?",
-            subtitle: "The ancient philosophy that still matters",
-            estimatedMinutes: 4,
-            isCompleted: false
-        )
-        item.topic = stoicism
-        context.insert(item)
-
-        // ... more items
-    }
-}
-```
-
-### Content item modeling
-
-All content types share a single `ContentItem` model (as defined in the SwiftData architecture section above) with a `ContentType` enum to differentiate them. Type-specific data (article body text, quiz questions, discussion exchanges, etc.) can be stored as encoded JSON in a `String` property or as separate related `@Model` classes depending on complexity:
-
-```swift
-enum ContentType: String, Codable, CaseIterable {
-    case video
-    case article
-    case imageCard
-    case quiz
-    case discussion
-    case survey
-    case challenge
-}
-```
-
-The feed renders content polymorphically by switching on `ContentType` to select the appropriate card view.
-
-### Mock data should feel real
-
-Even though this is mock data, it should read like real content, not "Lorem ipsum" or "Test Article 1." The prototype will be demonstrated and evaluated on feel, so realistic mock content is important. Use actual facts about Stoicism and Astrophysics. Write actual quiz questions with plausible wrong answers.
+- **Articles:** Plain text body
+- **Quizzes:** `{"questions":[{"question":"...","options":[...],"correctIndex":0,"explanation":"..."}]}`
+- **Surveys:** `{"options":[...],"results":[28,31,24,17]}`
+- **Discussions:** `{"exchanges":[{"role":"prompt","text":"..."},{"role":"follow_up_1","text":"..."}]}`
+- **Challenges:** `{"instructions":"...","completionPrompt":"..."}`
+- **Videos/Images:** `body` is nil. Resources loaded from bundle.
 
 ### Question quality in mock data
 
-All proposed questions displayed on the welcome screen must follow the content question guidelines defined in the PRD. Specifically:
-
-- Every question must be specific and not broad (no "What is X?" style)
-- Every question must be under 15 words
-- Every question must feel conversational, not academic
-- Every question should provoke curiosity, surprise, or a desire to know the answer
-- Questions should span a variety of subject areas and tonal angles
-
-When writing content items within a topic, the titles and framing of individual pieces should also follow this spirit. An article titled "Marcus Aurelius wrote a journal no one was supposed to read" is better than "The Life of Marcus Aurelius." A quiz question that tells a micro-story is better than one that asks for a definition.
+All curated questions follow the content question guidelines from the PRD: specific, under 15 words, conversational, provocative, not definitional. Content item titles follow the same spirit.
 
 
-## Performance considerations
+## Performance
 
-Even as a prototype, the app should feel fast and smooth:
-
-- Use `LazyVStack` or `LazyVGrid` inside `ScrollView` for the content feed so cards are rendered on demand, not all at once
-- Avoid heavy computation in view bodies; defer to ViewModels
-- Use `.task` or `.onAppear` for data loading rather than initializers
-- Keep animations at 60fps by animating only simple properties (opacity, offset, scale) and avoiding layout-triggering animations on large view trees
-- Test on a real device, not just the simulator, to validate scroll performance
+- `LazyVStack` for feed rendering
+- Video thumbnail generated async via `AVAssetImageGenerator`
+- `.task` for data loading
+- Tested on simulator; real device testing recommended
 
 
 ## Accessibility baseline
 
-The prototype should include basic accessibility support from the start:
-
-- All interactive elements must be tappable with a minimum 44x44pt hit area
-- All images should have meaningful `accessibilityLabel` values
-- Use semantic SwiftUI elements (`Button`, `NavigationLink`, `Label`) rather than `onTapGesture` on plain `View`s where possible, as they automatically support accessibility
-- Support Dynamic Type by using SwiftUI's built-in text styles (`.title`, `.body`, `.caption`) rather than fixed font sizes
-- Ensure sufficient color contrast between text and backgrounds, especially on the dark color palette
+- Minimum 44x44pt tap targets
+- `accessibilityLabel` on interactive elements
+- Semantic SwiftUI elements (`Button`, `Label`) over `onTapGesture`
+- Dynamic Type via built-in text styles
 
 
 ## Future technical considerations (out of scope)
 
-Documented for awareness only. Not part of the prototype.
-
-- **Networking layer:** `URLSession`-based API client for fetching AI-generated content from a backend
-- **Authentication:** Sign in with Apple, token-based session management
-- **Push notifications:** APNs for daily reminders and streak nudges
-- **Analytics:** Event tracking for content engagement, level progression, and drop-off analysis
-- **AI integration:** Anthropic Claude API for real-time discussion and content generation
-- **Media pipeline:** Server-side video/audio generation with on-device caching and streaming
+- **AI integration:** Claude API for content generation, real-time discussions
+- **Networking layer:** `URLSession`-based API client
+- **Authentication:** Sign in with Apple
+- **Push notifications:** APNs for streaks and reminders
+- **Analytics:** Event tracking for engagement and drop-off
+- **Media pipeline:** Server-side video/audio generation with caching
