@@ -5,6 +5,9 @@ struct ContentFeedView: View {
     let topic: Topic
     var onBack: () -> Void
 
+    @State private var selectedArticle: ContentItem?
+    @State private var selectedQuiz: ContentItem?
+
     private var sortedItems: [ContentItem] {
         topic.contentItems
             .filter { $0.level == 1 }
@@ -37,6 +40,12 @@ struct ContentFeedView: View {
                     LevelPill(level: 1, color: topic.accentColor)
                 }
             }
+            .sheet(item: $selectedArticle) { article in
+                ArticleDetailView(item: article)
+            }
+            .fullScreenCover(item: $selectedQuiz) { quiz in
+                QuizFlowView(item: quiz)
+            }
         }
     }
 
@@ -66,18 +75,24 @@ struct ContentFeedView: View {
     private func contentCard(for item: ContentItem) -> some View {
         let type = ContentType(rawValue: item.type) ?? .article
         switch type {
+        case .article:
+            Button { selectedArticle = item } label: {
+                ArticleCard(item: item)
+            }
+            .buttonStyle(.plain)
+        case .quiz:
+            Button { selectedQuiz = item } label: {
+                QuizCard(item: item)
+            }
+            .buttonStyle(.plain)
         case .video:
             VideoCard(item: item)
-        case .article:
-            ArticleCard(item: item)
         case .imageCard:
             ImageCardView(item: item, accentColor: topic.accentColor)
-        case .quiz:
-            QuizCard(item: item)
-        case .discussion:
-            DiscussionCard(item: item)
         case .survey:
             SurveyCard(item: item)
+        case .discussion:
+            DiscussionCard(item: item)
         case .challenge:
             ChallengeCard(item: item, accentColor: topic.accentColor)
         }
