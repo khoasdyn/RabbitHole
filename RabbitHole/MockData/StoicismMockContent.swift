@@ -10,17 +10,7 @@ struct StoicismMockContent {
 
         let items: [(type: String, title: String, subtitle: String?, body: String?, minutes: Int?, order: Int)] = [
 
-            // 1 — Video
-            (
-                ContentType.video.rawValue,
-                "A slave, an emperor, and a playwright walk into a philosophy class",
-                "Meet the three Stoics who changed how we think about suffering",
-                nil,
-                2,
-                1
-            ),
-
-            // 2 — Article
+            // 1 — Article
             (
                 ContentType.article.rawValue,
                 "Your flight got cancelled. The Stoics would say that's not a problem.",
@@ -43,32 +33,10 @@ struct StoicismMockContent {
                 It's a deceptively simple idea. And as you'll discover going deeper, it gets much more nuanced and debatable. But this is where it starts: the claim that most of your problems exist in the gap between what happened and what you think should have happened.
                 """,
                 5,
-                2
+                1
             ),
 
-            // 3 — Survey
-            (
-                ContentType.survey.rawValue,
-                "When something goes wrong, what's your first instinct?",
-                nil,
-                """
-                {"options":["Try to fix it immediately","Vent to someone about it","Stress internally but say nothing","Pause and assess what I can actually control"],"results":[28,31,24,17]}
-                """,
-                1,
-                3
-            ),
-
-            // 4 — Image card
-            (
-                ContentType.imageCard.rawValue,
-                "The dichotomy of control in one picture",
-                "What you can control vs. what you can't — and where most stress actually lives",
-                nil,
-                1,
-                4
-            ),
-
-            // 5 — Article
+            // 2 — Article
             (
                 ContentType.article.rawValue,
                 "Marcus Aurelius wrote a journal no one was supposed to read",
@@ -89,10 +57,10 @@ struct StoicismMockContent {
                 That's a pretty strong argument for the Stoic claim that your problems are mostly internal. If the richest, most powerful man in the ancient world still struggled with the same mental patterns you do, maybe the problem really isn't your circumstances.
                 """,
                 4,
-                5
+                2
             ),
 
-            // 6 — Quiz
+            // 3 — Quiz
             (
                 ContentType.quiz.rawValue,
                 "Do you actually get what the Stoics were saying?",
@@ -101,20 +69,10 @@ struct StoicismMockContent {
                 {"questions":[{"question":"A Stoic would say suffering comes from...","options":["Bad events happening to you","Your judgments about events","Not having enough willpower","Ignoring your emotions"],"correctIndex":1,"explanation":"The Stoics argued that events themselves are neutral. Suffering comes from the judgments and beliefs we attach to them."},{"question":"The 'dichotomy of control' divides situations into...","options":["Good and bad outcomes","Past and future events","What you can and can't control","Emotions and logic"],"correctIndex":2,"explanation":"The dichotomy of control separates what is 'up to us' (our thoughts, actions, attitudes) from what is 'not up to us' (everything external)."},{"question":"Marcus Aurelius wrote Meditations as...","options":["A bestselling philosophy book","A guide for future emperors","Private notes to himself","Letters to his Stoic teacher"],"correctIndex":2,"explanation":"Meditations was never intended for publication. It was Marcus Aurelius's personal journal, essentially therapy notes he wrote to keep himself grounded."}]}
                 """,
                 3,
-                6
+                3
             ),
 
-            // 7 — Video
-            (
-                ContentType.video.rawValue,
-                "The shipwreck that accidentally invented Stoicism",
-                "How a bankrupt merchant named Zeno ended up changing philosophy forever",
-                nil,
-                2,
-                7
-            ),
-
-            // 8 — Discussion
+            // 4 — Discussion
             (
                 ContentType.discussion.rawValue,
                 "Your best friend just got dumped and is devastated. A Stoic would say the pain is self-created. Would you tell them that?",
@@ -123,10 +81,10 @@ struct StoicismMockContent {
                 {"exchanges":[{"role":"prompt","text":"Your best friend just got dumped and is devastated. A Stoic would say the heartbreak is caused by their judgments, not the breakup itself. Would you actually say that to them?"},{"role":"follow_up_1","text":"That's a thoughtful take. But here's the tension: if the Stoic framework is true, wouldn't a real friend help them see it? Or is there a difference between what's philosophically true and what's helpful to say in the moment?"},{"role":"follow_up_2","text":"Interesting. So you're drawing a line between understanding Stoicism yourself and prescribing it to others in pain. Do you think the Stoics themselves would agree with that distinction, or would they push back?"},{"role":"closing","text":"This is actually one of the oldest critiques of Stoicism — that it can feel cold when applied to real human grief. We'll explore this tension more as you go deeper. For now, it's worth sitting with the question: can an idea be true and still be the wrong thing to say?"}]}
                 """,
                 5,
-                8
+                4
             ),
 
-            // 9 — Article
+            // 5 — Article
             (
                 ContentType.article.rawValue,
                 "Epictetus was born a slave. He said that made him more free, not less.",
@@ -145,10 +103,10 @@ struct StoicismMockContent {
                 You can disagree with that conclusion. Many people do. But it's hard to dismiss it as naive when it comes from someone who had every reason to blame his circumstances.
                 """,
                 5,
-                9
+                5
             ),
 
-            // 10 — Challenge
+            // 6 — Challenge
             (
                 ContentType.challenge.rawValue,
                 "Pick one thing bothering you right now. Split it in two.",
@@ -157,7 +115,7 @@ struct StoicismMockContent {
                 {"instructions":"Think of something that's been on your mind today — something stressful, annoying, or worrying. Write it down, then split it into two columns: what you can actually control about this situation, and what you can't. Be honest. Most people find the 'can't control' column is longer than expected.","completionPrompt":"I completed the exercise"}
                 """,
                 5,
-                10
+                6
             )
         ]
 

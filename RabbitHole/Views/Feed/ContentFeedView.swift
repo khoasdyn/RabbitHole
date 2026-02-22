@@ -158,7 +158,6 @@ struct ContentFeedView: View {
     private func generateArticleForFollowUp(_ question: String) {
         guard !isArticleGenerating else { return }
 
-        // Clear current follow-ups
         followUpService = nil
         followUpTask = nil
 
@@ -243,20 +242,12 @@ struct ContentFeedView: View {
         case .quiz:
             Button { select(item, fullScreen: true) } label: { QuizCard(item: item) }
                 .buttonStyle(.plain)
-        case .video:
-            Button { select(item, fullScreen: true) } label: { VideoCard(item: item) }
-                .buttonStyle(.plain)
-        case .imageCard:
-            Button { select(item, fullScreen: false) } label: { ImageCard(item: item) }
-                .buttonStyle(.plain)
         case .discussion:
             Button { select(item, fullScreen: true) } label: { DiscussionCard(item: item) }
                 .buttonStyle(.plain)
         case .challenge:
             Button { select(item, fullScreen: false) } label: { ChallengeCard(item: item) }
                 .buttonStyle(.plain)
-        case .survey:
-            SurveyCard(item: item)
         }
     }
 
@@ -270,13 +261,10 @@ struct ContentFeedView: View {
     @ViewBuilder
     private func detailView(for item: ContentItem) -> some View {
         switch item.contentType {
-        case .article:  ArticleDetailView(item: item)
-        case .quiz:     QuizFlowView(item: item)
-        case .video:    VideoDetailView(item: item)
-        case .imageCard: ImageDetailView(item: item)
+        case .article:    ArticleDetailView(item: item)
+        case .quiz:       QuizFlowView(item: item)
         case .discussion: DiscussionThreadView(item: item)
-        case .challenge: ChallengeDetailView(item: item)
-        case .survey:   EmptyView()
+        case .challenge:  ChallengeDetailView(item: item)
         }
     }
 }
