@@ -9,12 +9,16 @@
 /* Begin PBXBuildFile section */
 		2F8F27042F49B71F007552D7 /* rabbit-hole-prd.md in Resources */ = {isa = PBXBuildFile; fileRef = 2F8F27022F49B71F007552D7 /* rabbit-hole-prd.md */; };
 		2F8F27052F49B71F007552D7 /* rabbit-hole-technical-requirements.md in Resources */ = {isa = PBXBuildFile; fileRef = 2F8F27032F49B71F007552D7 /* rabbit-hole-technical-requirements.md */; };
+		2FA4DA9C2F4A8589004DB87A /* apple-foundation-framework-examples.md in Resources */ = {isa = PBXBuildFile; fileRef = 2FA4DA9B2F4A8589004DB87A /* apple-foundation-framework-examples.md */; };
+		2FB4E2A22F4A83BE004102AB /* apple-foundation-framework-reference.md in Resources */ = {isa = PBXBuildFile; fileRef = 2FB4E2A12F4A83BE004102AB /* apple-foundation-framework-reference.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		2F8F26F42F49B693007552D7 /* RabbitHole.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RabbitHole.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F8F27022F49B71F007552D7 /* rabbit-hole-prd.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "rabbit-hole-prd.md"; sourceTree = "<group>"; };
 		2F8F27032F49B71F007552D7 /* rabbit-hole-technical-requirements.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "rabbit-hole-technical-requirements.md"; sourceTree = "<group>"; };
+		2FA4DA9B2F4A8589004DB87A /* apple-foundation-framework-examples.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "apple-foundation-framework-examples.md"; sourceTree = "<group>"; };
+		2FB4E2A12F4A83BE004102AB /* apple-foundation-framework-reference.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "apple-foundation-framework-reference.md"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -39,6 +43,8 @@
 		2F8F26EB2F49B693007552D7 = {
 			isa = PBXGroup;
 			children = (
+				2FA4DA9B2F4A8589004DB87A /* apple-foundation-framework-examples.md */,
+				2FB4E2A12F4A83BE004102AB /* apple-foundation-framework-reference.md */,
 				2F8F27022F49B71F007552D7 /* rabbit-hole-prd.md */,
 				2F8F27032F49B71F007552D7 /* rabbit-hole-technical-requirements.md */,
 				2F8F26F62F49B693007552D7 /* RabbitHole */,
@@ -120,6 +126,8 @@
 			files = (
 				2F8F27042F49B71F007552D7 /* rabbit-hole-prd.md in Resources */,
 				2F8F27052F49B71F007552D7 /* rabbit-hole-technical-requirements.md in Resources */,
+				2FA4DA9C2F4A8589004DB87A /* apple-foundation-framework-examples.md in Resources */,
+				2FB4E2A22F4A83BE004102AB /* apple-foundation-framework-reference.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -64,7 +64,7 @@ struct VideoCard: View {
 
     private func generateThumbnail() async {
         guard let url = Bundle.main.url(forResource: "video-demo", withExtension: "mp4") else { return }
-        let asset = AVAsset(url: url)
+        let asset = AVURLAsset(url: url)
         let generator = AVAssetImageGenerator(asset: asset)
         generator.appliesPreferredTrackTransform = true
         generator.maximumSize = CGSize(width: 600, height: 400)
