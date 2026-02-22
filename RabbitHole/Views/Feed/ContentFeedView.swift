@@ -1,12 +1,17 @@
 import SwiftUI
+import FoundationModels
 
 struct ContentFeedView: View {
 
     let topic: Topic
     var onBack: () -> Void
 
+    @Environment(\.modelContext) private var modelContext
     @State private var selectedItem: ContentItem?
     @State private var presentAsFullScreen = false
+    @State private var generationService: ArticleGenerationService?
+    @State private var generationTask: Task<Void, Never>?
+    @State private var modelUnavailable = false
 
     private var sortedItems: [ContentItem] {
         topic.contentItems
@@ -14,13 +19,29 @@ struct ContentFeedView: View {
             .sorted { $0.sortOrder < $1.sortOrder }
     }
 
+    private var needsGeneration: Bool {
+        topic.contentItems.filter { $0.level == 1 }.isEmpty
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 16) {
                     feedHeader
+
+                    if modelUnavailable {
+                        modelUnavailableCard
+                    }
+
                     ForEach(sortedItems) { item in
                         contentCard(for: item)
+                    }
+
+                    if let service = generationService, !service.isCompleted {
+                        ArticleCardSkeleton(
+                            partial: service.partial,
+                            hasFailed: service.hasFailed
+                        )
                     }
                 }
                 .padding(.horizontal, 20)
@@ -45,6 +66,34 @@ struct ContentFeedView: View {
             }
             .fullScreenCover(item: fullScreenBinding) { item in
                 detailView(for: item)
+            }
+            .onAppear {
+                startGenerationIfNeeded()
+            }
+        }
+    }
+
+    // MARK: - Generation
+
+    private func startGenerationIfNeeded() {
+        guard needsGeneration else { return }
+        guard generationTask == nil else { return }
+
+        guard SystemLanguageModel.default.availability == .available else {
+            modelUnavailable = true
+            return
+        }
+
+        let service = ArticleGenerationService(topic: topic)
+        self.generationService = service
+        service.prewarm()
+
+        // Stored Task survives view disappearance — won't cancel on navigation
+        generationTask = Task { @MainActor in
+            await service.generateArticle(context: modelContext)
+
+            if service.isCompleted {
+                self.generationService = nil
             }
         }
     }
@@ -83,6 +132,27 @@ struct ContentFeedView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 8)
         .padding(.bottom, 8)
+    }
+
+    // MARK: - Model unavailable
+
+    private var modelUnavailableCard: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "wand.and.stars")
+                .font(.largeTitle)
+                .foregroundStyle(Color(.tertiaryLabel))
+
+            Text("Apple Intelligence is required to generate content.")
+                .font(.subheadline)
+                .foregroundStyle(Color(.secondaryLabel))
+                .multilineTextAlignment(.center)
+
+            Text("Enable it in Settings to explore custom topics.")
+                .font(.caption)
+                .foregroundStyle(Color(.tertiaryLabel))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
     }
 
     // MARK: - Card router
