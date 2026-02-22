@@ -118,20 +118,19 @@ final class ArticleGenerationService {
         if let followUpQuestion {
             return Prompt {
                 """
-                Main topic: "\(topic.question)"
-                Specific angle to cover: "\(followUpQuestion)"
+                The reader is exploring: "\(topic.question)"
+                They just asked: "\(followUpQuestion)"
 
                 Level: \(levelInfo?.label ?? "Newcomer") — \(levelInfo?.description ?? "The basics")
 
-                Write a short article that explores this specific angle in the context \
-                of the main topic. The article should help the reader understand this \
-                particular aspect while connecting back to the bigger question.
+                Write a short article that directly answers their question: "\(followUpQuestion)"
 
-                Requirements:
-                - Title: engaging, under 15 words, about this specific angle
-                - Subtitle: one sentence hinting at what the reader will learn
+                Critical rules:
+                - The title MUST be about "\(followUpQuestion)" — do not rephrase or change the topic
+                - The article body MUST directly address this exact question, not a related one
+                - Subtitle: one sentence hinting at the answer
                 - Body: under 200 words, conversational, no bullet points or headers
-                - Start with a concrete scenario, then build to the concept
+                - Start with a concrete scenario, then build to the answer
                 - Use "you" to address the reader
                 """
             }
