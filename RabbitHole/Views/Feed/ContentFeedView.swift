@@ -10,7 +10,9 @@ struct ContentFeedView: View {
     @State private var selectedItem: ContentItem?
     @State private var presentAsFullScreen = false
     @State private var generationService: ArticleGenerationService?
+    @State private var followUpService: FollowUpService?
     @State private var generationTask: Task<Void, Never>?
+    @State private var followUpTask: Task<Void, Never>?
     @State private var modelUnavailable = false
 
     private var sortedItems: [ContentItem] {
@@ -19,8 +21,20 @@ struct ContentFeedView: View {
             .sorted { $0.sortOrder < $1.sortOrder }
     }
 
-    private var needsGeneration: Bool {
-        topic.contentItems.filter { $0.level == 1 }.isEmpty
+    private var hasContent: Bool {
+        !topic.contentItems.filter({ $0.level == 1 }).isEmpty
+    }
+
+    private var needsInitialGeneration: Bool {
+        topic.contentItems.filter({ $0.level == 1 }).isEmpty
+    }
+
+    private var isArticleGenerating: Bool {
+        generationService?.isGenerating == true
+    }
+
+    private var showFollowUps: Bool {
+        hasContent && !isArticleGenerating && !modelUnavailable
     }
 
     var body: some View {
@@ -42,6 +56,11 @@ struct ContentFeedView: View {
                             partial: service.partial,
                             hasFailed: service.hasFailed
                         )
+                    }
+
+                    if showFollowUps {
+                        followUpSection
+                            .padding(.top, 8)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -68,15 +87,33 @@ struct ContentFeedView: View {
                 detailView(for: item)
             }
             .onAppear {
-                startGenerationIfNeeded()
+                if needsInitialGeneration {
+                    startInitialGeneration()
+                } else {
+                    startFollowUpGeneration()
+                }
             }
         }
     }
 
-    // MARK: - Generation
+    // MARK: - Follow-up section
 
-    private func startGenerationIfNeeded() {
-        guard needsGeneration else { return }
+    @ViewBuilder
+    private var followUpSection: some View {
+        let service = followUpService
+
+        FollowUpQuestionsView(
+            questions: service?.followUps ?? [],
+            isLoading: service?.isGenerating ?? true,
+            accentColor: topic.accentColor
+        ) { question in
+            generateArticleForFollowUp(question)
+        }
+    }
+
+    // MARK: - Generation: initial article
+
+    private func startInitialGeneration() {
         guard generationTask == nil else { return }
 
         guard SystemLanguageModel.default.availability == .available else {
@@ -88,12 +125,52 @@ struct ContentFeedView: View {
         self.generationService = service
         service.prewarm()
 
-        // Stored Task survives view disappearance — won't cancel on navigation
         generationTask = Task { @MainActor in
             await service.generateArticle(context: modelContext)
 
             if service.isCompleted {
                 self.generationService = nil
+                startFollowUpGeneration()
+            }
+        }
+    }
+
+    // MARK: - Generation: follow-up questions
+
+    private func startFollowUpGeneration() {
+        guard followUpTask == nil || followUpService?.followUps.isEmpty == true else { return }
+
+        guard SystemLanguageModel.default.availability == .available else {
+            modelUnavailable = true
+            return
+        }
+
+        let service = FollowUpService(topic: topic)
+        self.followUpService = service
+
+        followUpTask = Task { @MainActor in
+            await service.generateFollowUps()
+        }
+    }
+
+    // MARK: - Generation: article from follow-up question
+
+    private func generateArticleForFollowUp(_ question: String) {
+        guard !isArticleGenerating else { return }
+
+        // Clear current follow-ups
+        followUpService = nil
+        followUpTask = nil
+
+        let service = ArticleGenerationService(topic: topic)
+        self.generationService = service
+
+        generationTask = Task { @MainActor in
+            await service.generateArticle(for: question, context: modelContext)
+
+            if service.isCompleted {
+                self.generationService = nil
+                startFollowUpGeneration()
             }
         }
     }

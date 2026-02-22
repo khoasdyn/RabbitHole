@@ -35,8 +35,25 @@ final class ArticleGenerationService {
         session.prewarm()
     }
 
+    /// Generate an article for the main topic question.
     func generateArticle(context: ModelContext) async {
+        await generate(context: context, prompt: buildPrompt(followUpQuestion: nil))
+    }
+
+    /// Generate an article for a specific follow-up question.
+    func generateArticle(for followUpQuestion: String, context: ModelContext) async {
+        await generate(context: context, prompt: buildPrompt(followUpQuestion: followUpQuestion))
+    }
+
+    // MARK: - Core generation
+
+    private func generate(context: ModelContext, prompt: Prompt) async {
+        // Reset state for reuse
+        partial = nil
         isGenerating = true
+        isCompleted = false
+        hasFailed = false
+        error = nil
         defer { isGenerating = false }
 
         let existingSortOrder = topic.contentItems
@@ -44,7 +61,6 @@ final class ArticleGenerationService {
             .count
 
         do {
-            let prompt = buildPrompt()
             let stream = session.streamResponse(
                 to: prompt,
                 generating: GeneratedArticle.self
@@ -54,7 +70,6 @@ final class ArticleGenerationService {
                 self.partial = partialResponse.content
             }
 
-            // Persist the completed article to SwiftData
             if let partial,
                let title = partial.title,
                let subtitle = partial.subtitle,
@@ -97,22 +112,44 @@ final class ArticleGenerationService {
         """
     }
 
-    private func buildPrompt() -> Prompt {
+    private func buildPrompt(followUpQuestion: String?) -> Prompt {
         let levelInfo = Level(rawValue: level)
 
-        return Prompt {
-            """
-            Write a short article for the topic: "\(topic.question)"
+        if let followUpQuestion {
+            return Prompt {
+                """
+                Main topic: "\(topic.question)"
+                Specific angle to cover: "\(followUpQuestion)"
 
-            Level: \(levelInfo?.label ?? "Newcomer") — \(levelInfo?.description ?? "The basics")
+                Level: \(levelInfo?.label ?? "Newcomer") — \(levelInfo?.description ?? "The basics")
 
-            Requirements:
-            - Title: engaging, under 15 words, conversational
-            - Subtitle: one sentence hinting at the angle
-            - Body: under 200 words, conversational, no bullet points or headers
-            - Start with a concrete scenario, then build to the concept
-            - Use "you" to address the reader
-            """
+                Write a short article that explores this specific angle in the context \
+                of the main topic. The article should help the reader understand this \
+                particular aspect while connecting back to the bigger question.
+
+                Requirements:
+                - Title: engaging, under 15 words, about this specific angle
+                - Subtitle: one sentence hinting at what the reader will learn
+                - Body: under 200 words, conversational, no bullet points or headers
+                - Start with a concrete scenario, then build to the concept
+                - Use "you" to address the reader
+                """
+            }
+        } else {
+            return Prompt {
+                """
+                Write a short article for the topic: "\(topic.question)"
+
+                Level: \(levelInfo?.label ?? "Newcomer") — \(levelInfo?.description ?? "The basics")
+
+                Requirements:
+                - Title: engaging, under 15 words, conversational
+                - Subtitle: one sentence hinting at the angle
+                - Body: under 200 words, conversational, no bullet points or headers
+                - Start with a concrete scenario, then build to the concept
+                - Use "you" to address the reader
+                """
+            }
         }
     }
 }
