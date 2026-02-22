@@ -2,10 +2,10 @@ import SwiftUI
 
 struct FollowUpQuestionsView: View {
 
-    let questions: [FollowUpQuestion]
+    let suggestions: [FollowUpSuggestion]
     let isLoading: Bool
     let accentColor: Color
-    let onSelect: (String) -> Void
+    let onSelect: (FollowUpSuggestion) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -17,34 +17,66 @@ struct FollowUpQuestionsView: View {
             if isLoading {
                 loadingState
             } else {
-                ForEach(questions, id: \.text) { question in
+                ForEach(suggestions) { suggestion in
                     Button {
-                        onSelect(question.text)
+                        onSelect(suggestion)
                     } label: {
-                        HStack(spacing: 10) {
-                            Image(systemName: "sparkle")
-                                .font(.caption)
-                                .foregroundStyle(accentColor)
-
-                            Text(question.text)
-                                .font(.subheadline)
-                                .foregroundStyle(Color(.label))
-                                .multilineTextAlignment(.leading)
-
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .font(.caption2)
-                                .foregroundStyle(Color(.tertiaryLabel))
-                        }
-                        .padding(CardStyle.padding)
-                        .background(Color(.secondarySystemBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: CardStyle.cornerRadius))
+                        suggestionRow(suggestion)
                     }
                     .buttonStyle(.plain)
                 }
             }
         }
+    }
+
+    // MARK: - Suggestion row
+
+    private func suggestionRow(_ suggestion: FollowUpSuggestion) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: iconName(for: suggestion.type))
+                .font(.caption)
+                .foregroundStyle(suggestion.type.color)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(suggestion.text)
+                    .font(.subheadline)
+                    .foregroundStyle(Color(.label))
+                    .multilineTextAlignment(.leading)
+
+                if let subtitle = suggestion.subtitle {
+                    Text(subtitle)
+                        .font(.caption2)
+                        .foregroundStyle(Color(.tertiaryLabel))
+                }
+            }
+
+            Spacer()
+
+            typePill(suggestion.type)
+        }
+        .padding(CardStyle.padding)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: CardStyle.cornerRadius))
+    }
+
+    private func iconName(for type: ContentType) -> String {
+        switch type {
+        case .article: "sparkle"
+        case .quiz: "questionmark.circle"
+        case .challenge: "flame"
+        case .discussion: "bubble.left.and.bubble.right"
+        }
+    }
+
+    private func typePill(_ type: ContentType) -> some View {
+        Text(type.label)
+            .font(.caption2)
+            .fontWeight(.semibold)
+            .foregroundStyle(type.color)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(type.color.opacity(0.12))
+            .clipShape(Capsule())
     }
 
     // MARK: - Loading

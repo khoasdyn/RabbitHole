@@ -3,6 +3,16 @@ import SwiftUI
 struct QuizCard: View {
     let item: ContentItem
 
+    private var questionCount: Int {
+        guard let body = item.body,
+              let data = body.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let questions = json["questions"] as? [[String: Any]] else {
+            return 0
+        }
+        return questions.count
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: CardStyle.spacing) {
             TypeBadge(type: .quiz)
@@ -20,7 +30,7 @@ struct QuizCard: View {
             }
 
             HStack {
-                Label("3 questions", systemImage: "list.number")
+                Label("\(questionCount) questions", systemImage: "list.number")
                     .font(.caption2)
                     .foregroundStyle(Color(.tertiaryLabel))
                 Spacer()

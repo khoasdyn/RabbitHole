@@ -8,7 +8,7 @@ final class FollowUpService {
 
     // MARK: - State
 
-    private(set) var followUps: [FollowUpQuestion] = []
+    private(set) var suggestions: [FollowUpSuggestion] = []
     private(set) var isGenerating = false
     private(set) var hasFailed = false
 
@@ -29,7 +29,7 @@ final class FollowUpService {
     func generateFollowUps() async {
         isGenerating = true
         hasFailed = false
-        followUps = []
+        suggestions = []
         defer { isGenerating = false }
 
         do {
@@ -38,7 +38,35 @@ final class FollowUpService {
                 to: prompt,
                 generating: GeneratedFollowUps.self
             )
-            self.followUps = response.content.questions
+
+            let result = response.content
+            var items: [FollowUpSuggestion] = []
+
+            // Article questions first
+            for q in result.articleQuestions {
+                items.append(FollowUpSuggestion(
+                    type: .article,
+                    text: q.text,
+                    subtitle: nil
+                ))
+            }
+
+            // Quiz suggestion
+            items.append(FollowUpSuggestion(
+                type: .quiz,
+                text: result.quizTitle,
+                subtitle: result.quizSubtitle
+            ))
+
+            // Challenge suggestion
+            items.append(FollowUpSuggestion(
+                type: .challenge,
+                text: result.challengeTitle,
+                subtitle: result.challengeSubtitle
+            ))
+
+            self.suggestions = items
+
         } catch {
             hasFailed = true
         }
@@ -48,11 +76,11 @@ final class FollowUpService {
 
     private static let instructions = Instructions {
         """
-        You generate follow-up questions for a learning app called Rabbit Hole. \
-        Questions should help the reader explore specific angles, causes, consequences, \
-        or real-world examples that reveal the answer to a main topic question. \
-        Each question should feel like a natural next step in curiosity — \
-        specific, conversational, and under 15 words.
+        You generate follow-up suggestions for a learning app called Rabbit Hole. \
+        You suggest article questions, a quiz, and a challenge — all related to the main topic. \
+        Article questions help the reader explore specific angles. \
+        The quiz tests what they've learned so far. \
+        The challenge is a hands-on exercise to apply their understanding.
         """
     }
 
@@ -61,6 +89,14 @@ final class FollowUpService {
             .filter { $0.contentType == .article }
             .map { $0.title }
 
+        let existingQuizCount = topic.contentItems
+            .filter { $0.contentType == .quiz }
+            .count
+
+        let existingChallengeCount = topic.contentItems
+            .filter { $0.contentType == .challenge }
+            .count
+
         return Prompt {
             """
             Main topic: "\(topic.question)"
@@ -68,11 +104,16 @@ final class FollowUpService {
             Articles the reader has already seen:
             \(existingTitles.isEmpty ? "None yet" : existingTitles.enumerated().map { "- \($0.offset + 1). \($0.element)" }.joined(separator: "\n"))
 
-            Generate 3–5 follow-up questions that:
-            - Dig into specific angles that help answer the main topic
-            - Don't repeat what existing articles already cover
-            - Are concrete and specific (not vague or generic)
-            - Feel like a natural "I wonder about..." moment
+            Quizzes completed: \(existingQuizCount)
+            Challenges completed: \(existingChallengeCount)
+
+            Generate:
+            1. Three follow-up article questions that dig into specific angles not yet covered
+            2. A quiz title and subtitle that tests understanding of what was read so far
+            3. A challenge title and subtitle that applies what was learned to something practical
+
+            All suggestions must be directly relevant to "\(topic.question)".
+            Don't repeat topics already covered in existing articles.
             """
         }
     }

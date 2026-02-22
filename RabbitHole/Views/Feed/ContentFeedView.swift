@@ -9,10 +9,17 @@ struct ContentFeedView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var selectedItem: ContentItem?
     @State private var presentAsFullScreen = false
-    @State private var generationService: ArticleGenerationService?
+
+    // Generation services
+    @State private var articleService: ArticleGenerationService?
+    @State private var quizService: QuizGenerationService?
+    @State private var challengeService: ChallengeGenerationService?
     @State private var followUpService: FollowUpService?
+
+    // Task references (survive navigation)
     @State private var generationTask: Task<Void, Never>?
     @State private var followUpTask: Task<Void, Never>?
+
     @State private var modelUnavailable = false
 
     private var sortedItems: [ContentItem] {
@@ -29,12 +36,14 @@ struct ContentFeedView: View {
         topic.contentItems.filter({ $0.level == 1 }).isEmpty
     }
 
-    private var isArticleGenerating: Bool {
-        generationService?.isGenerating == true
+    private var isContentGenerating: Bool {
+        articleService?.isGenerating == true
+        || quizService?.isGenerating == true
+        || challengeService?.isGenerating == true
     }
 
     private var showFollowUps: Bool {
-        hasContent && !isArticleGenerating && !modelUnavailable
+        hasContent && !isContentGenerating && !modelUnavailable
     }
 
     var body: some View {
@@ -51,9 +60,26 @@ struct ContentFeedView: View {
                         contentCard(for: item)
                     }
 
-                    if let service = generationService, !service.isCompleted {
+                    // Article skeleton (with streaming partial)
+                    if let service = articleService, !service.isCompleted {
                         ArticleCardSkeleton(
                             partial: service.partial,
+                            hasFailed: service.hasFailed
+                        )
+                    }
+
+                    // Quiz skeleton
+                    if let service = quizService, !service.isCompleted {
+                        GeneratingCardSkeleton(
+                            contentType: .quiz,
+                            hasFailed: service.hasFailed
+                        )
+                    }
+
+                    // Challenge skeleton
+                    if let service = challengeService, !service.isCompleted {
+                        GeneratingCardSkeleton(
+                            contentType: .challenge,
                             hasFailed: service.hasFailed
                         )
                     }
@@ -103,11 +129,11 @@ struct ContentFeedView: View {
         let service = followUpService
 
         FollowUpQuestionsView(
-            questions: service?.followUps ?? [],
+            suggestions: service?.suggestions ?? [],
             isLoading: service?.isGenerating ?? true,
             accentColor: topic.accentColor
-        ) { question in
-            generateArticleForFollowUp(question)
+        ) { suggestion in
+            handleFollowUpSelection(suggestion)
         }
     }
 
@@ -122,23 +148,23 @@ struct ContentFeedView: View {
         }
 
         let service = ArticleGenerationService(topic: topic)
-        self.generationService = service
+        self.articleService = service
         service.prewarm()
 
         generationTask = Task { @MainActor in
             await service.generateArticle(context: modelContext)
 
             if service.isCompleted {
-                self.generationService = nil
+                self.articleService = nil
                 startFollowUpGeneration()
             }
         }
     }
 
-    // MARK: - Generation: follow-up questions
+    // MARK: - Generation: follow-up suggestions
 
     private func startFollowUpGeneration() {
-        guard followUpTask == nil || followUpService?.followUps.isEmpty == true else { return }
+        guard followUpTask == nil || followUpService?.suggestions.isEmpty == true else { return }
 
         guard SystemLanguageModel.default.availability == .available else {
             modelUnavailable = true
@@ -153,22 +179,64 @@ struct ContentFeedView: View {
         }
     }
 
-    // MARK: - Generation: article from follow-up question
+    // MARK: - Follow-up selection dispatch
 
-    private func generateArticleForFollowUp(_ question: String) {
-        guard !isArticleGenerating else { return }
+    private func handleFollowUpSelection(_ suggestion: FollowUpSuggestion) {
+        guard !isContentGenerating else { return }
 
+        // Clear current follow-ups
         followUpService = nil
         followUpTask = nil
 
+        switch suggestion.type {
+        case .article:
+            generateArticleFromFollowUp(suggestion.text)
+        case .quiz:
+            generateQuizFromFollowUp(title: suggestion.text, subtitle: suggestion.subtitle ?? "")
+        case .challenge:
+            generateChallengeFromFollowUp(title: suggestion.text, subtitle: suggestion.subtitle ?? "")
+        case .discussion:
+            break // Not yet supported
+        }
+    }
+
+    private func generateArticleFromFollowUp(_ question: String) {
         let service = ArticleGenerationService(topic: topic)
-        self.generationService = service
+        self.articleService = service
 
         generationTask = Task { @MainActor in
             await service.generateArticle(for: question, context: modelContext)
 
             if service.isCompleted {
-                self.generationService = nil
+                self.articleService = nil
+                startFollowUpGeneration()
+            }
+        }
+    }
+
+    private func generateQuizFromFollowUp(title: String, subtitle: String) {
+        let service = QuizGenerationService(topic: topic)
+        self.quizService = service
+
+        generationTask = Task { @MainActor in
+            await service.generateQuiz(title: title, subtitle: subtitle, context: modelContext)
+
+            if service.isCompleted {
+                self.quizService = nil
+                startFollowUpGeneration()
+            }
+        }
+    }
+
+    private func generateChallengeFromFollowUp(title: String, subtitle: String) {
+        let service = ChallengeGenerationService(topic: topic)
+        self.challengeService = service
+
+        generationTask = Task { @MainActor in
+            await service.generateChallenge(title: title, subtitle: subtitle, context: modelContext)
+
+            if service.isCompleted {
+                self.challengeService = nil
                 startFollowUpGeneration()
             }
         }
