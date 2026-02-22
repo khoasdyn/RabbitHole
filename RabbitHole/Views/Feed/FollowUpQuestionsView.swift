@@ -14,17 +14,17 @@ struct FollowUpQuestionsView: View {
                 .fontWeight(.semibold)
                 .foregroundStyle(Color(.secondaryLabel))
 
-            if isLoading {
-                loadingState
-            } else {
-                ForEach(suggestions) { suggestion in
-                    Button {
-                        onSelect(suggestion)
-                    } label: {
-                        suggestionRow(suggestion)
-                    }
-                    .buttonStyle(.plain)
+            ForEach(suggestions) { suggestion in
+                Button {
+                    onSelect(suggestion)
+                } label: {
+                    suggestionRow(suggestion)
                 }
+                .buttonStyle(.plain)
+            }
+
+            if isLoading {
+                ShimmerQuestionRow()
             }
         }
     }
@@ -77,16 +77,6 @@ struct FollowUpQuestionsView: View {
             .padding(.vertical, 4)
             .background(type.color.opacity(0.12))
             .clipShape(Capsule())
-    }
-
-    // MARK: - Loading
-
-    private var loadingState: some View {
-        VStack(spacing: 10) {
-            ForEach(0..<3, id: \.self) { _ in
-                ShimmerQuestionRow()
-            }
-        }
     }
 }
 

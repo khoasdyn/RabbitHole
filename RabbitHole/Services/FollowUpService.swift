@@ -34,38 +34,48 @@ final class FollowUpService {
 
         do {
             let prompt = buildPrompt()
-            let response = try await session.respond(
+            let stream = session.streamResponse(
                 to: prompt,
                 generating: GeneratedFollowUps.self
             )
 
-            let result = response.content
-            var items: [FollowUpSuggestion] = []
+            for try await partialResponse in stream {
+                let partial = partialResponse.content
+                var items: [FollowUpSuggestion] = []
 
-            // Article questions first
-            for q in result.articleQuestions {
-                items.append(FollowUpSuggestion(
-                    type: .article,
-                    text: q.text,
-                    subtitle: nil
-                ))
+                // Article questions stream in one by one
+                if let questions = partial.articleQuestions {
+                    for q in questions {
+                        if let text = q.text, !text.isEmpty {
+                            items.append(FollowUpSuggestion(
+                                type: .article,
+                                text: text,
+                                subtitle: nil
+                            ))
+                        }
+                    }
+                }
+
+                // Quiz appears once title is available
+                if let quizTitle = partial.quizTitle, !quizTitle.isEmpty {
+                    items.append(FollowUpSuggestion(
+                        type: .quiz,
+                        text: quizTitle,
+                        subtitle: partial.quizSubtitle
+                    ))
+                }
+
+                // Challenge appears once title is available
+                if let challengeTitle = partial.challengeTitle, !challengeTitle.isEmpty {
+                    items.append(FollowUpSuggestion(
+                        type: .challenge,
+                        text: challengeTitle,
+                        subtitle: partial.challengeSubtitle
+                    ))
+                }
+
+                self.suggestions = items
             }
-
-            // Quiz suggestion
-            items.append(FollowUpSuggestion(
-                type: .quiz,
-                text: result.quizTitle,
-                subtitle: result.quizSubtitle
-            ))
-
-            // Challenge suggestion
-            items.append(FollowUpSuggestion(
-                type: .challenge,
-                text: result.challengeTitle,
-                subtitle: result.challengeSubtitle
-            ))
-
-            self.suggestions = items
 
         } catch {
             hasFailed = true
